@@ -8,11 +8,18 @@ export function AuthProvider({ children }) {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    const hasToken = !!localStorage.getItem("gl_token");
+    if (!hasToken) {
+      setUser(false);
+      setReady(true);
+      return;
+    }
     (async () => {
       try {
         const { data } = await api.get("/auth/me");
         setUser(data);
       } catch {
+        localStorage.removeItem("gl_token");
         setUser(false);
       } finally {
         setReady(true);

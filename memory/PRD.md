@@ -1,0 +1,52 @@
+# GroovLabz — Product Requirements Doc
+
+## Original Problem Statement
+GroovLabz is the main website for a music technology ecosystem with five companion apps
+(recording, mashup/editing, tuning, chords/lyrics with chord charts, guitar emulation with
+Bluetooth hardware). Responsive, immersive, dark professional recording-studio atmosphere,
+cyan/blue neon accents. Home + Apps + Instruments (browser-playable) + Shop (Bluetooth
+hardware) + Account + About + Contact + legal pages.
+
+## Architecture
+- **Backend**: FastAPI, Motor (async MongoDB), JWT auth (bcrypt + PyJWT), Stripe checkout
+  (claimable sandbox), Resend email via Emergent integration proxy, all routes under `/api`.
+- **Frontend**: React 19 + React Router 7, Tailwind + custom studio CSS, Web Audio API for
+  Instruments playground, sonner toasts, axios with cookie + Bearer token.
+
+## User Personas
+- **Producer / Home Studio**: wants to record & mix on mobile
+- **Touring Musician**: wants chord charts, tuning, Bluetooth guitar rig on the road
+- **Beat Maker / DJ**: wants mashups, stem separation
+- **Casual Learner**: warms up on browser instruments before downloading apps
+
+## Core Requirements (static)
+1. Home page with hero, 5 app download cards → choice modal (Google Play / App Store)
+2. Apps page: detailed feature showcases for all 5 companion apps
+3. Interactive Instruments (piano, guitar, bass, violin, drums) — real Web Audio audio
+4. Online Shop with Stripe checkout for Bluetooth hardware
+5. Account: signup/login, dashboard (orders, activity, connected apps, stats)
+6. About + Contact (DB + email) + Privacy + Terms
+
+## Implemented (2026-02)
+- Backend: auth register/login/logout/me, shop products, payments checkout + status + webhook,
+  contact (DB + Resend email), activity log, account dashboard, orders/mine, admin seeding,
+  Mongo indexes.
+- Frontend: full 12-route SPA — Home, Apps, Instruments, Shop, About, Contact, Login,
+  Register, Account, Privacy, Terms, Payment success/cancel. Cart drawer, download modal,
+  glassmorphic navbar, studio-styled footer.
+- Integrations: JWT auth, Stripe sandbox (test mode, DIY tax), Resend managed email,
+  Emergent LLM key wired for future features.
+- Tests: 16/16 pytest backend tests pass; full frontend testing pass 100%.
+
+## Backlog (P0 / P1 / P2)
+- **P1** Order emails on successful payment (via Resend)
+- **P1** Product detail pages with reviews
+- **P2** Migrate SHOP_PRODUCTS to DB with admin editor
+- **P2** Move to FastAPI lifespan handlers (@on_event deprecated)
+- **P2** Password reset flow (forgot-password + reset-password endpoints scaffolded but not built)
+- **P2** Brute-force lockout on /api/auth/login (5-fail 15-min lockout)
+- **P2** Split server.py into routers/ modules
+
+## Test Credentials
+- Seeded admin: `admin@groovlabz.com` / `admin123`
+- Endpoint: `POST /api/auth/login`
