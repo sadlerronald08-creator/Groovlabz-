@@ -1,0 +1,4 @@
+/* GroovLabz app-level styles kept minimal — most styling in index.css and tailwind */
+.App {
+  min-height: 100vh;
+}

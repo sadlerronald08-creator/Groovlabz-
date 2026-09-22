@@ -1,0 +1,200 @@
+{
+  "project_name": "GroovLabz Ecosystem",
+  "theme": {
+    "type": "dark_recording_studio",
+    "background": "#0B0C10",
+    "surface": "#12141D",
+    "surface_elevated": "#1A1D2B",
+    "card_bg": "#141722",
+    "border": "#23283B",
+    "border_highlight": "#00F0FF33",
+    "text_primary": "#F1F5F9",
+    "text_secondary": "#94A3B8",
+    "text_muted": "#64748B",
+    "accent_cyan": "#00F0FF",
+    "accent_electric_blue": "#0066FF",
+    "accent_magenta": "#FF0055",
+    "accent_amber": "#FFB800",
+    "neon_glow_cyan": "0 0 20px rgba(0, 240, 255, 0.4)",
+    "neon_glow_blue": "0 0 20px rgba(0, 102, 255, 0.4)"
+  },
+  "typography": {
+    "font_family_heading": "Cabinet Grotesk, Syne, Outfit, sans-serif",
+    "font_family_body": "Plus Jakarta Sans, Inter, sans-serif",
+    "font_family_mono": "JetBrains Mono, Fira Code, monospace",
+    "font_family_display": "Unbounded, Barlow Condensed, sans-serif",
+    "scale": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight",
+      "h3": "text-xl sm:text-2xl font-semibold tracking-normal",
+      "h4": "text-lg sm:text-xl font-medium",
+      "body": "text-base text-slate-300 leading-relaxed",
+      "body_sm": "text-sm text-slate-400 leading-relaxed",
+      "mono_label": "font-mono text-xs uppercase tracking-widest text-cyan-400"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-slate-950/70 border border-slate-800/80 shadow-2xl",
+    "card_style": "bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 transition-all duration-300 rounded-xl overflow-hidden shadow-lg hover:shadow-cyan-950/30",
+    "audio_meter_gradient": "bg-gradient-to-r from-cyan-500 via-blue-500 to-fuchsia-500",
+    "metal_border": "border border-slate-700/60 bg-gradient-to-b from-slate-800/50 to-slate-900/80",
+    "glowing_pill_button": "bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold px-6 py-3 rounded-full shadow-[0_0_20px_rgba(0,240,255,0.4)] transition-all hover:scale-105"
+  },
+  "image_urls": {
+    "hero_studio": {
+      "url": "https://images.pexels.com/photos/18197122/pexels-photo-18197122.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Blue-lit music production setup with controller in a dark studio",
+      "category": "Hero Background / Studio Atmosphere"
+    },
+    "studio_drum_pad": {
+      "url": "https://images.pexels.com/photos/11300427/pexels-photo-11300427.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Vibrant neon-lit music studio showcasing drum machine",
+      "category": "App Feature / GroovMash Mashup & Editing"
+    },
+    "electric_guitar_studio": {
+      "url": "https://images.pexels.com/photos/8197260/pexels-photo-8197260.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Dynamic shot of musician playing electric guitar in music studio",
+      "category": "Interactive Instruments / GroovGuitar & Bluetooth Gear"
+    },
+    "guitar_hardware_pick": {
+      "url": "https://images.pexels.com/photos/29205062/pexels-photo-29205062.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Black electric guitar close up with plectrum and metal pickup details",
+      "category": "Shop Product / Bluetooth Smart Guitar Adapter"
+    },
+    "marshall_bluetooth_gear": {
+      "url": "https://images.pexels.com/photos/13981274/pexels-photo-13981274.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Industrial style audio hardware and speaker gear",
+      "category": "Shop Product / GroovLink Wireless Audio Transceiver"
+    },
+    "headphones_studio": {
+      "url": "https://images.unsplash.com/photo-1559327875-12005444b626?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTN8MHwxfHNlYXJjaHw0fHxyZWNvcmRpbmclMjBzdHVkaW8lMjBzb3VuZGJvYXJkJTIwc3ludGhlc2l6ZXIlMjBuZW9uJTIwY3lhbiUyMGxpZ2h0fGVufDB8fHx8MTc5MDExMDkzNnww&ixlib=rb-4.1.0&q=85",
+      "description": "Close up blue and black studio reference headphones",
+      "category": "Shop Product / Studio Headphones"
+    }
+  },
+  "companion_apps_metadata": [
+    {
+      "id": "groovsesh",
+      "name": "GroovSesh",
+      "tagline": "Simplified Multi-Track Studio Recording",
+      "icon": "Mic",
+      "badge": "Core DAW",
+      "description": "Zero-latency multi-track vocal and instrument recording with automated gain staging and real-time DSP effects.",
+      "features": ["16-track audio recording", "Built-in tube pre-amp simulation", "One-touch export to WAV/MP3", "Cloud session sync"]
+    },
+    {
+      "id": "groovmash",
+      "name": "GroovMash",
+      "tagline": "AI-Powered Song Mashups & Remixing",
+      "icon": "Disc3",
+      "badge": "AI Remix",
+      "description": "Instantly isolate stems (vocals, drums, bass, keys), match key and BPM, and create studio-grade remixes on the fly.",
+      "features": ["Stem separation engine", "Smart key & BPM sync", "FX transition pad", "Live performance looper"]
+    },
+    {
+      "id": "groovtune",
+      "name": "GroovTune",
+      "tagline": "Ultra-Precise Polyphonic Instrument Tuner",
+      "icon": "Activity",
+      "badge": "Pro Utility",
+      "description": "Sub-cent accuracy tuner for guitar, bass, violin, and custom drop tunings with visual strobe feedback.",
+      "features": ["Sub-0.1 cent strobe accuracy", "50+ alternate tunings", "Noise cancellation algorithm", "Custom tuning creator"]
+    },
+    {
+      "id": "groovchords",
+      "name": "GroovChords",
+      "tagline": "Interactive Chords, Lyrics & Diagrams",
+      "icon": "BookOpen",
+      "badge": "Songbook",
+      "description": "Library of over 500,000 song chord charts, dynamic transposition, auto-scroll, and fingering variations.",
+      "features": ["Dynamic transposition", "Fretboard chord visualizer", "Hands-free auto-scroll", "Setlist organizer"]
+    },
+    {
+      "id": "groovguitar",
+      "name": "GroovGuitar",
+      "tagline": "Guitar Emulation & Bluetooth Hardware Link",
+      "icon": "Radio",
+      "badge": "Hardware Sync",
+      "description": "Virtual amp modeling, stompbox effects rack, and seamless Bluetooth low-latency connection to GroovPuck hardware.",
+      "features": ["24 Amp models & IR cabinets", "Bluetooth 5.3 ultra-low latency", "Expression pedal MIDI sync", "Tone sharing community"]
+    }
+  ],
+  "interactive_instruments_specs": {
+    "audio_engine": "Web Audio API synth engine with custom oscillators, gain envelopes, reverb filter, and polyphonic voice allocation",
+    "supported_instruments": [
+      {
+        "id": "guitar",
+        "name": "Acoustic / Electric Guitar",
+        "keys": "Keys A, S, D, F, G, H for 6 strings; chord selector knobs"
+      },
+      {
+        "id": "piano",
+        "name": "Studio Grand Piano & Keys",
+        "keys": "Interactive 2-octave piano keyboard (White & Black keys)"
+      },
+      {
+        "id": "bass",
+        "name": "Slap Bass",
+        "keys": "Low frequency slap & pluck synthesizer"
+      },
+      {
+        "id": "violin",
+        "name": "Violin / String Ensemble",
+        "keys": "Continuous sustain bowing simulation"
+      },
+      {
+        "id": "drums",
+        "name": "MPC Drum Pad Set",
+        "keys": "Kick, Snare, Hi-Hat, Tom, Crash, Percussion pads"
+      }
+    ]
+  },
+  "shop_products": [
+    {
+      "id": "groovpuck-bt",
+      "name": "GroovPuck Bluetooth Guitar Adapter",
+      "price": 149.99,
+      "tag": "Best Seller",
+      "description": "Low-latency Bluetooth 5.3 transmitter attaching to any standard guitar jack. Wirelessly sends audio signal directly to GroovGuitar & GroovSesh apps with under 4ms delay.",
+      "image_key": "guitar_hardware_pick",
+      "specs": ["Ultra-low <4ms latency", "12-hour rechargeable battery", "USB-C fast charging", "Anodized aluminum alloy body"]
+    },
+    {
+      "id": "groovlink-pedal",
+      "name": "GroovLink Smart Wireless Foot Controller",
+      "price": 199.99,
+      "tag": "New Hardware",
+      "description": "Programmable 4-footswitch MIDI controller for hands-free app control, page turning on GroovChords, and patch switching.",
+      "image_key": "marshall_bluetooth_gear",
+      "specs": ["4 silent tactile switches", "OLED patch display", "Bluetooth & USB MIDI", "Heavy-duty steel chassis"]
+    },
+    {
+      "id": "groovphones-pro",
+      "name": "GroovPhones Reference Studio Headphones",
+      "price": 179.99,
+      "tag": "Studio Edition",
+      "description": "Flat frequency response closed-back monitoring headphones tuned specifically for mixing with GroovSesh and GroovMash.",
+      "image_key": "headphones_studio",
+      "specs": ["50mm neodymium drivers", "15Hz - 28kHz frequency response", "Detachable coiled cable", "Memory foam ear cushions"]
+    }
+  ],
+  "layout_and_navigation": {
+    "header": "Glassmorphic top bar with fixed z-50 position, brand logo with glowing cyan icon, navigation links (Home, Apps, Instruments, Shop, About, Contact), Cart drawer badge, and Account Sign In/Dashboard button",
+    "mobile_nav": "Responsive slide-over drawer with dark brushed metal aesthetic and large tap targets",
+    "modal_choice": "App Download Modal with choice of Google Play Store or Apple App Store with QR code option & instant direct download links",
+    "footer": "Industrial dark footer with signal status indicator, app download quick links, newsletter join for studio updates, legal privacy/terms links, and copyright"
+  },
+  "testing_and_accessibility": {
+    "data_testid_rules": "All interactive elements MUST contain data-testid attributes in kebab-case (e.g. data-testid='nav-link-apps', data-testid='app-card-groovsesh', data-testid='download-modal-app-store-button', data-testid='instrument-tab-piano', data-testid='piano-key-C4', data-testid='add-to-cart-groovpuck-bt', data-testid='login-submit-button')",
+    "contrast_requirements": "All body text must use high contrast slate-200 / slate-300 on dark slate-950/900 background. Cyan buttons must use dark text #030712 for max readability.",
+    "aria_labels": "All interactive canvas, synth pads, sound switches, and modal dialogs must have explicit aria-label and role attributes."
+  },
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Maintain the dark professional recording studio aesthetic across every single page and component.",
+    "Use glowing cyan (#00F0FF) and electric blue (#0066FF) as primary accents with subtle neon magenta for badges and highlights.",
+    "Ensure the interactive instrument playground uses real browser Web Audio API sound synthesis so clicking piano keys, drum pads, or guitar strings produces clear, pleasant musical tones.",
+    "Implement full e-commerce functionality for the shop: product filtering, cart drawer with quantity adjustments, promo codes, mock Stripe checkout modal, and order confirmation toast via Sonner.",
+    "Include full user account experience: login/register modal/page, user profile dashboard showing connected GroovLabz apps, synced cloud sessions, purchase history, and active hardware registration.",
+    "Ensure all interactive buttons, inputs, tabs, and links include data-testid attributes for automated testing."
+  ]
+}
