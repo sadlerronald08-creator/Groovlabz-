@@ -3,9 +3,9 @@ import { View, Text, Pressable, StyleSheet, FlatList, RefreshControl, ActivityIn
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { CaretLeft, Play, Trash, MusicNotes, Plus } from "phosphor-react-native";
+import { CaretLeft, Trash, MusicNotes, Plus } from "phosphor-react-native";
 import { makeStyles, useTheme, fonts } from "@/src/theme";
-import { GrooveWatermark } from "@/src/components/ui";
+import { GrooveWatermark, SessionCover } from "@/src/components/ui";
 import { apiFetch } from "@/src/api";
 import { queryClient } from "@/src/query-client";
 import { useToast } from "@/src/components/toast";
@@ -61,9 +61,7 @@ export default function Sessions() {
           }
           renderItem={({ item }) => (
             <Pressable style={styles.card} onPress={() => router.push(`/session/${item.id}`)} testID={`session-card-${item.id}`}>
-              <View style={styles.cardIcon}>
-                <Play size={22} color={colors.onBrandSecondary} weight="fill" />
-              </View>
+              <SessionCover id={item.id} title={item.title} size={52} radius={12} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
                 <Text style={styles.cardMeta}>

@@ -1,79 +1,24 @@
 import React, { useState } from "react";
-import { View, Text, Pressable, StyleSheet, ScrollView, Platform } from "react-native";
+import { View, Pressable, StyleSheet, Platform, Linking } from "react-native";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useMutation } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
-import Svg, { Polygon, Line, Circle, Defs, LinearGradient as SvgGradient, Stop } from "react-native-svg";
-import { Microphone, Plus, MusicNotes, UploadSimple, ShareNetwork, Gear } from "phosphor-react-native";
-import { makeStyles, useTheme, fonts } from "@/src/theme";
-import { GalaxyBackground, InfinityLogo, GrooveWatermark } from "@/src/components/ui";
 import { apiFetch } from "@/src/api";
 import { queryClient } from "@/src/query-client";
 import { useToast } from "@/src/components/toast";
+import { GROOVE_LABS_URL } from "@/src/config";
 
-function NeckBackground({ width, height }: { width: number; height: number }) {
-  const { colors } = useTheme();
-  if (width <= 0) return null;
-  const cx = width / 2;
-  const topW = width * 0.34;
-  const botW = width * 0.52;
-  const neckTop = height * 0.12;
-  const neckBot = height;
-
-  const frets = Array.from({ length: 7 }, (_, i) => neckTop + ((neckBot - neckTop) / 7) * (i + 0.5));
-  const widthAt = (y: number) => {
-    const t = (y - neckTop) / (neckBot - neckTop);
-    return topW + (botW - topW) * t;
-  };
-
-  return (
-    <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
-      <Defs>
-        <SvgGradient id="neck" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor="#2A1650" stopOpacity="0.95" />
-          <Stop offset="1" stopColor="#120A28" stopOpacity="0.95" />
-        </SvgGradient>
-      </Defs>
-      <Polygon
-        points={`${cx - topW / 2 - 10},${neckTop} ${cx + topW / 2 + 10},${neckTop} ${cx + topW / 2 - 6},${height * 0.03} ${cx - topW / 2 + 6},${height * 0.03}`}
-        fill="url(#neck)"
-        stroke={colors.brandPrimary}
-        strokeWidth={1.5}
-        opacity={0.9}
-      />
-      <Polygon
-        points={`${cx - topW / 2},${neckTop} ${cx + topW / 2},${neckTop} ${cx + botW / 2},${neckBot} ${cx - botW / 2},${neckBot}`}
-        fill="url(#neck)"
-        stroke={colors.brandTertiary}
-        strokeWidth={1.5}
-      />
-      {frets.map((y, i) => {
-        const w = widthAt(y);
-        return (
-          <Line key={`f${i}`} x1={cx - w / 2} y1={y} x2={cx + w / 2} y2={y} stroke={colors.brandSecondary} strokeWidth={2} opacity={0.35} />
-        );
-      })}
-      {Array.from({ length: 6 }, (_, i) => {
-        const off = (i - 2.5) / 5;
-        return (
-          <Line key={`s${i}`} x1={cx + off * topW} y1={neckTop} x2={cx + off * botW} y2={neckBot} stroke={colors.onSurface} strokeWidth={0.7} opacity={0.12} />
-        );
-      })}
-      {[0.35, 0.6, 0.85].map((p, i) => (
-        <Circle key={`i${i}`} cx={cx} cy={neckTop + (neckBot - neckTop) * p} r={4} fill={colors.brandSecondary} opacity={0.5} />
-      ))}
-    </Svg>
-  );
-}
+const ART = require("../assets/images/groovsesh-home.png");
+const IMG_W = 654;
+const IMG_H = 1012;
 
 export default function Home() {
-  const styles = useStyles();
-  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const toast = useToast();
-  const [neck, setNeck] = useState({ width: 0, height: 0 });
+  const [box, setBox] = useState({ w: 0, h: 0 });
 
   const createSession = useMutation({
     mutationFn: () =>
@@ -88,110 +33,88 @@ export default function Home() {
     onError: () => toast.show("Could not create session", "error"),
   });
 
-  const frets = [
-    { label: "New Session", icon: Plus, onPress: () => createSession.mutate(), testID: "fret-new-session" },
-    { label: "My Sessions", icon: MusicNotes, onPress: () => router.push("/sessions"), testID: "fret-my-sessions" },
-    { label: "Import", icon: UploadSimple, onPress: () => router.push("/import"), testID: "fret-import" },
-    {
-      label: "Tracks",
-      icon: ShareNetwork,
-      onPress: () => toast.show("Send stems to GroovTracks from any session's Export screen", "info"),
-      testID: "fret-tracks",
-    },
-    { label: "Settings", icon: Gear, onPress: () => router.push("/settings"), testID: "fret-settings" },
-  ];
-
-  const jam = () => {
-    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
-    router.push("/jam");
+  const tap = (fn: () => void, heavy = false) => () => {
+    if (Platform.OS !== "web") Haptics.impactAsync(heavy ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    fn();
   };
 
+  // contain-fit rendered rect of the artwork inside the measured box
+  const scale = box.w > 0 ? Math.min(box.w / IMG_W, box.h / IMG_H) : 0;
+  const dw = IMG_W * scale;
+  const dh = IMG_H * scale;
+  const ox = (box.w - dw) / 2;
+  const oy = (box.h - dh) / 2;
+  // strip overlay from a node center (cx,cy) extending to the right edge
+  const node = (cx: number, cy: number) => ({
+    position: "absolute" as const,
+    left: ox + (cx - 0.06) * dw,
+    top: oy + (cy - 0.034) * dh,
+    width: (1 - (cx - 0.06)) * dw,
+    height: 0.068 * dh,
+  });
+  const spot = (cx: number, cy: number, fw: number, fh: number) => ({
+    position: "absolute" as const,
+    left: ox + (cx - fw / 2) * dw,
+    top: oy + (cy - fh / 2) * dh,
+    width: fw * dw,
+    height: fh * dh,
+  });
+
+  const nodes: { id: string; cx: number; cy: number; onPress: () => void; heavy?: boolean }[] = [
+    { id: "jam-now-button", cx: 0.51, cy: 0.247, onPress: () => router.push("/jam"), heavy: true },
+    { id: "fret-record", cx: 0.505, cy: 0.317, onPress: () => createSession.mutate() },
+    { id: "fret-review", cx: 0.477, cy: 0.388, onPress: () => router.push("/sessions") },
+    { id: "fret-neural", cx: 0.459, cy: 0.459, onPress: () => toast.show("Neural Clean runs in Export → GroovMash", "info") },
+    { id: "fret-mixer", cx: 0.446, cy: 0.531, onPress: () => router.push("/sessions") },
+    { id: "fret-reel", cx: 0.428, cy: 0.601, onPress: () => router.push("/sessions") },
+    { id: "fret-collab", cx: 0.428, cy: 0.682, onPress: () => toast.show("Collab — invite bandmates (coming soon)", "info") },
+  ];
+
+  const tabs: { id: string; cx: number; onPress: () => void }[] = [
+    { id: "tab-home", cx: 0.073, onPress: () => {} },
+    { id: "tab-tuner", cx: 0.211, onPress: () => toast.show("Tuner — coming soon", "info") },
+    { id: "tab-metronome", cx: 0.375, onPress: () => toast.show("Open a session for the metronome", "info") },
+    { id: "tab-looper", cx: 0.544, onPress: () => toast.show("Looper — coming soon", "info") },
+    { id: "tab-songbook", cx: 0.713, onPress: () => toast.show("Songbook — coming soon", "info") },
+    { id: "tab-setlists", cx: 0.895, onPress: () => toast.show("Setlists — coming soon", "info") },
+  ];
+
+  const pressStyle = ({ pressed }: { pressed: boolean }) => ({ backgroundColor: pressed ? "rgba(56,189,248,0.18)" : "transparent", borderRadius: 12 });
+
   return (
-    <GalaxyBackground>
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <InfinityLogo />
+    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
+      <View style={styles.stage} onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
+        <Image source={ART} style={StyleSheet.absoluteFill} contentFit="contain" cachePolicy="memory-disk" />
+
+        {box.w > 0 && (
+          <>
+            {/* top-right settings gear */}
+            <Pressable testID="home-settings" onPress={tap(() => router.push("/settings"))} style={[spot(0.94, 0.03, 0.13, 0.05), pressStyle]} />
+            {/* hamburger menu */}
+            <Pressable testID="home-menu" onPress={tap(() => router.push("/settings"))} style={[spot(0.06, 0.03, 0.13, 0.05), pressStyle]} />
+            {/* QUICK JAMS badge */}
+            <Pressable testID="home-quick-jams" onPress={tap(() => router.push("/sessions"))} style={[spot(0.84, 0.115, 0.26, 0.14), pressStyle]} />
+
+            {/* guitar neck play-nodes */}
+            {nodes.map((n) => (
+              <Pressable key={n.id} testID={n.id} onPress={tap(n.onPress, n.heavy)} style={[node(n.cx, n.cy), pressStyle]} />
+            ))}
+
+            {/* GroovLabz watermark (stool) */}
+            <Pressable testID="groove-labs-watermark" onPress={() => Linking.openURL(GROOVE_LABS_URL).catch(() => {})} style={spot(0.8, 0.715, 0.22, 0.07)} />
+
+            {/* bottom tab bar */}
+            {tabs.map((t) => (
+              <Pressable key={t.id} testID={t.id} onPress={tap(t.onPress)} style={[spot(t.cx, 0.955, 0.16, 0.075), pressStyle]} />
+            ))}
+          </>
+        )}
       </View>
-
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <Pressable onPress={jam} testID="jam-now-button" style={({ pressed }) => [styles.jamNow, { opacity: pressed ? 0.9 : 1 }]}>
-          <View style={styles.jamGlow} />
-          <Microphone size={30} color={colors.onBrandPrimary} weight="fill" />
-          <Text style={styles.jamText}>JAM NOW</Text>
-          <Text style={styles.jamSub}>Instant quick-record</Text>
-        </Pressable>
-
-        <View
-          style={styles.neckArea}
-          onLayout={(e) => setNeck({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
-        >
-          <NeckBackground width={neck.width} height={neck.height} />
-          <View style={styles.fretColumn}>
-            {frets.map((f) => {
-              const Icon = f.icon;
-              return (
-                <Pressable
-                  key={f.label}
-                  testID={f.testID}
-                  onPress={() => {
-                    if (Platform.OS !== "web") Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-                    f.onPress();
-                  }}
-                  style={({ pressed }) => [styles.fret, { opacity: pressed ? 0.8 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }]}
-                >
-                  <Icon size={20} color={colors.brandSecondary} weight="bold" />
-                  <Text style={styles.fretText}>{f.label}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-      </ScrollView>
-
-      <View style={{ paddingBottom: insets.bottom + 6 }}>
-        <GrooveWatermark />
-      </View>
-    </GalaxyBackground>
+    </View>
   );
 }
 
-const useStyles = makeStyles((colors) => ({
-  header: { alignItems: "center", paddingBottom: 8 },
-  scroll: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16, gap: 10, flexGrow: 1 },
-  jamNow: {
-    height: 116,
-    borderRadius: 24,
-    backgroundColor: colors.brandPrimary,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 2,
-    shadowColor: colors.brandPrimary,
-    shadowOpacity: 0.7,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 12,
-    overflow: "hidden",
-  },
-  jamGlow: { position: "absolute", top: -30, width: 200, height: 100, borderRadius: 100, backgroundColor: "rgba(255,255,255,0.15)" },
-  jamText: { fontFamily: fonts.displayBold, fontSize: 30, color: colors.onBrandPrimary, letterSpacing: 3 },
-  jamSub: { fontFamily: fonts.text, fontSize: 12, color: "rgba(255,255,255,0.85)", letterSpacing: 1 },
-  neckArea: { flex: 1, minHeight: 420, justifyContent: "center", position: "relative" },
-  fretColumn: { paddingVertical: 24, gap: 14, justifyContent: "center", flex: 1 },
-  fret: {
-    height: 58,
-    borderRadius: 999,
-    backgroundColor: "rgba(38,38,54,0.9)",
-    borderWidth: 1.5,
-    borderColor: colors.brandSecondary,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-    marginHorizontal: 30,
-    shadowColor: colors.brandSecondary,
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 4,
-  },
-  fretText: { fontFamily: fonts.displayBold, fontSize: 18, color: colors.onSurface, letterSpacing: 1.5 },
-}));
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: "#05060A" },
+  stage: { flex: 1, position: "relative" },
+});

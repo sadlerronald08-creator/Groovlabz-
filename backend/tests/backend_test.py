@@ -55,7 +55,7 @@ def h(token):
 def test_root():
     r = requests.get(f"{API}/", timeout=15)
     assert r.status_code == 200
-    assert r.json().get("message") == "Groove Sesh API"
+    assert r.json().get("message") == "GroovSesh API"
 
 
 # ---- Auth ----
@@ -227,3 +227,101 @@ class TestTracksAndAudio:
         # Verify soft delete - not in session tracks
         g = requests.get(f"{API}/sessions/{sid}", headers=h(user_a["token"]), timeout=15).json()
         assert not any(t["id"] == tid for t in g["tracks"])
+
+
+
+# ---- Reorder ----
+class TestReorder:
+    def _make_session_with_tracks(self, token, n=3):
+        r = requests.post(f"{API}/sessions", headers=h(token), json={"title": "TEST_REORDER"}, timeout=15)
+        sid = r.json()["id"]
+        ids = []
+        for i in range(n):
+            wav = _mk_wav_bytes()
+            files = {"file": (f"t{i}.wav", wav, "audio/wav")}
+            data = {"name": f"Take {i}", "source": "mic", "duration": "0.2", "color": str(i)}
+            up = requests.post(f"{API}/sessions/{sid}/tracks", headers=h(token), data=data, files=files, timeout=60)
+            assert up.status_code == 200, up.text
+            ids.append(up.json()["id"])
+        return sid, ids
+
+    def test_reorder_persists(self, user_a):
+        sid, ids = self._make_session_with_tracks(user_a["token"], n=3)
+        # reverse
+        new_order = list(reversed(ids))
+        r = requests.post(f"{API}/sessions/{sid}/reorder", headers=h(user_a["token"]), json={"track_ids": new_order}, timeout=15)
+        assert r.status_code == 200
+        g = requests.get(f"{API}/sessions/{sid}", headers=h(user_a["token"]), timeout=15).json()
+        got = [t["id"] for t in g["tracks"]]
+        assert got == new_order, f"expected {new_order}, got {got}"
+
+    def test_reorder_other_user_404(self, user_a, user_b):
+        sid, ids = self._make_session_with_tracks(user_a["token"], n=2)
+        r = requests.post(f"{API}/sessions/{sid}/reorder", headers=h(user_b["token"]),
+                          json={"track_ids": list(reversed(ids))}, timeout=15)
+        assert r.status_code == 404
+
+
+# ---- Mixdown ----
+class TestMixdown:
+    @pytest.fixture(scope="class")
+    def session_with_two(self, user_a):
+        r = requests.post(f"{API}/sessions", headers=h(user_a["token"]), json={"title": "TEST_MIX"}, timeout=15)
+        sid = r.json()["id"]
+        for i in range(2):
+            wav = _mk_wav_bytes(seconds=0.3, freq=440 + i * 220)
+            files = {"file": (f"m{i}.wav", wav, "audio/wav")}
+            data = {"name": f"Take {i}", "source": "mic", "duration": "0.3", "color": str(i)}
+            up = requests.post(f"{API}/sessions/{sid}/tracks", headers=h(user_a["token"]), data=data, files=files, timeout=60)
+            assert up.status_code == 200, up.text
+        return sid
+
+    def test_mixdown_mp3(self, user_a, session_with_two):
+        r = requests.post(f"{API}/sessions/{session_with_two}/mixdown?format=mp3",
+                          headers=h(user_a["token"]), timeout=120)
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["format"] == "mp3"
+        assert body["size"] > 0
+        assert body["audio_url"].startswith("/api/mixdown/")
+
+        # download
+        g = requests.get(f"{BASE_URL}{body['audio_url']}&token={user_a['token']}", timeout=60)
+        assert g.status_code == 200
+        assert g.headers.get("content-type", "").startswith("audio/mpeg")
+        assert len(g.content) > 0
+
+    def test_mixdown_wav(self, user_a, session_with_two):
+        r = requests.post(f"{API}/sessions/{session_with_two}/mixdown?format=wav",
+                          headers=h(user_a["token"]), timeout=120)
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert body["format"] == "wav"
+        assert body["size"] > 0
+
+        g = requests.get(f"{API}/mixdown/{session_with_two}?fmt=wav&token={user_a['token']}", timeout=60)
+        assert g.status_code == 200
+        assert g.headers.get("content-type", "").startswith("audio/wav")
+        assert len(g.content) > 0
+
+    def test_mixdown_no_tracks_400(self, user_a):
+        r = requests.post(f"{API}/sessions", headers=h(user_a["token"]), json={"title": "TEST_EMPTY"}, timeout=15)
+        sid = r.json()["id"]
+        m = requests.post(f"{API}/sessions/{sid}/mixdown?format=mp3", headers=h(user_a["token"]), timeout=30)
+        assert m.status_code == 400
+
+    def test_get_mixdown_no_token_401(self, user_a, session_with_two):
+        # ensure mixdown exists
+        requests.post(f"{API}/sessions/{session_with_two}/mixdown?format=mp3", headers=h(user_a["token"]), timeout=120)
+        r = requests.get(f"{API}/mixdown/{session_with_two}?fmt=mp3", timeout=30)
+        assert r.status_code == 401
+
+    def test_get_mixdown_cross_user_404(self, user_a, user_b, session_with_two):
+        # user_a already generated mp3 mixdown in earlier test; user_b should get 404
+        r = requests.get(f"{API}/mixdown/{session_with_two}?fmt=mp3&token={user_b['token']}", timeout=30)
+        assert r.status_code == 404
+
+    def test_mixdown_cross_user_404(self, user_a, user_b, session_with_two):
+        r = requests.post(f"{API}/sessions/{session_with_two}/mixdown?format=mp3",
+                          headers=h(user_b["token"]), timeout=30)
+        assert r.status_code == 404

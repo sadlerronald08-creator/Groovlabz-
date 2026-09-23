@@ -34,26 +34,44 @@ export default function ExportScreen() {
     if (tracks.length === 0) { toast.show("Add a track first", "error"); return; }
     setBusy("audio");
     try {
-      const src = await audioSource(tracks[0].audio_url);
+      const res = await apiFetch<any>(`/sessions/${id}/mixdown?format=mp3`, { method: "POST" });
+      const src = await audioSource(res.audio_url);
       if (Platform.OS === "web") {
         Linking.openURL(src.uri);
-        toast.show("Download started", "success");
+        toast.show("Mixdown ready", "success");
       } else {
-        const target = `${cacheDirectory}${data.title.replace(/[^a-z0-9]/gi, "_")}.m4a`;
-        const res = await downloadAsync(src.uri, target);
-        if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(res.uri);
+        const target = `${cacheDirectory}${data.title.replace(/[^a-z0-9]/gi, "_")}.mp3`;
+        const r = await downloadAsync(src.uri, target);
+        if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(r.uri);
         toast.show("Mixdown exported", "success");
       }
-    } catch {
-      toast.show("Export failed", "error");
+    } catch (e: any) {
+      toast.show(e?.message || "Export failed", "error");
     } finally {
       setBusy(null);
     }
   };
 
-  const proAction = (label: string) => {
+  const wavExport = async () => {
     if (!isSubscribed) { router.push("/paywall?reason=wav"); return; }
-    toast.show(label, "success");
+    if (tracks.length === 0) { toast.show("Add a track first", "error"); return; }
+    setBusy("wav");
+    try {
+      const res = await apiFetch<any>(`/sessions/${id}/mixdown?format=wav`, { method: "POST" });
+      const src = await audioSource(res.audio_url);
+      if (Platform.OS === "web") {
+        Linking.openURL(src.uri);
+      } else {
+        const target = `${cacheDirectory}${data.title.replace(/[^a-z0-9]/gi, "_")}.wav`;
+        const r = await downloadAsync(src.uri, target);
+        if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(r.uri);
+      }
+      toast.show("Lossless WAV exported", "success");
+    } catch (e: any) {
+      toast.show(e?.message || "Export failed", "error");
+    } finally {
+      setBusy(null);
+    }
   };
 
   const stems = () => {
@@ -84,7 +102,7 @@ export default function ExportScreen() {
         <ExportOption
           icon={DownloadSimple}
           title="Export Audio File"
-          desc="Compressed mixdown (M4A) — share or save to your device"
+          desc="Combined mixdown (MP3) — share or save to your device"
           onPress={exportAudio}
           loading={busy === "audio"}
           testID="export-audio"
@@ -103,7 +121,8 @@ export default function ExportScreen() {
           icon={WaveTriangle}
           title="Lossless WAV Export"
           desc="Studio-quality uncompressed WAV mixdown"
-          onPress={() => proAction("WAV export started")}
+          onPress={wavExport}
+          loading={busy === "wav"}
           locked={!isSubscribed}
           testID="export-wav"
         />

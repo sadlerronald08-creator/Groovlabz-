@@ -469,6 +469,108 @@ async def delete_track(track_id: str, authorization: Optional[str] = Header(defa
     return {"ok": True}
 
 
+class ReorderInput(BaseModel):
+    track_ids: List[str]
+
+
+@api_router.post("/sessions/{session_id}/reorder")
+async def reorder_tracks(session_id: str, body: ReorderInput, authorization: Optional[str] = Header(default=None)):
+    user = await require_user(authorization)
+    s = await db.groove_sessions.find_one({"id": session_id, "user_id": user["user_id"], "deleted_at": None})
+    if not s:
+        raise HTTPException(status_code=404, detail="Session not found")
+    for idx, tid in enumerate(body.track_ids):
+        await db.tracks.update_one(
+            {"id": tid, "session_id": session_id, "user_id": user["user_id"]}, {"$set": {"order": idx}}
+        )
+    await db.groove_sessions.update_one({"id": session_id}, {"$set": {"updated_at": now_utc()}})
+    return {"ok": True}
+
+
+def _do_mixdown(tracks: list, fmt: str) -> bytes:
+    from io import BytesIO
+    import math
+    from pydub import AudioSegment
+
+    any_solo = any(t.get("solo") for t in tracks)
+    segs = []
+    for t in tracks:
+        audible = t.get("solo") if any_solo else (not t.get("muted"))
+        if not audible:
+            continue
+        content, _ = get_object(t["storage_path"])
+        try:
+            seg = AudioSegment.from_file(BytesIO(content))
+        except Exception:
+            continue
+        eff = t.get("effects") or {}
+        ts = float(eff.get("trim_start", 0.0) or 0.0)
+        te = float(eff.get("trim_end", 0.0) or 0.0)
+        if ts > 0 or te > 0:
+            start_ms = int(ts * 1000)
+            end_ms = len(seg) - int(te * 1000)
+            if end_ms > start_ms:
+                seg = seg[start_ms:end_ms]
+        v = float(t.get("volume", 1.0)) * float(eff.get("gain", 1.0))
+        if v <= 0:
+            continue
+        if abs(v - 1.0) > 0.001:
+            seg = seg.apply_gain(20 * math.log10(max(v, 0.0001)))
+        segs.append(seg)
+    if not segs:
+        raise ValueError("no audible tracks")
+    length = max(len(s) for s in segs)
+    mix = AudioSegment.silent(duration=length)
+    for s in segs:
+        mix = mix.overlay(s)
+    buf = BytesIO()
+    if fmt == "wav":
+        mix.export(buf, format="wav")
+    else:
+        mix.export(buf, format="mp3", bitrate="192k")
+    return buf.getvalue()
+
+
+@api_router.post("/sessions/{session_id}/mixdown")
+async def mixdown(session_id: str, format: str = Query("mp3"), authorization: Optional[str] = Header(default=None)):
+    user = await require_user(authorization)
+    fmt = "wav" if format.lower() == "wav" else "mp3"
+    s = await db.groove_sessions.find_one({"id": session_id, "user_id": user["user_id"], "deleted_at": None})
+    if not s:
+        raise HTTPException(status_code=404, detail="Session not found")
+    tracks = []
+    async for t in db.tracks.find({"session_id": session_id, "deleted_at": None}).sort("order", 1):
+        tracks.append(t)
+    if not tracks:
+        raise HTTPException(status_code=400, detail="Add a track before exporting")
+    try:
+        data = await run_in_threadpool(_do_mixdown, tracks, fmt)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="No audible tracks to export")
+    except Exception as e:
+        logger.warning(f"mixdown failed: {e}")
+        raise HTTPException(status_code=500, detail="Mixdown failed")
+    ct = "audio/wav" if fmt == "wav" else "audio/mpeg"
+    path = f"{APP_NAME}/mixdowns/{user['user_id']}/{session_id}.{fmt}"
+    await run_in_threadpool(put_object, path, data, ct)
+    await db.groove_sessions.update_one({"id": session_id}, {"$set": {f"mixdown_{fmt}": path, "updated_at": now_utc()}})
+    return {"audio_url": f"/api/mixdown/{session_id}?fmt={fmt}", "format": fmt, "size": len(data)}
+
+
+@api_router.get("/mixdown/{session_id}")
+async def get_mixdown(session_id: str, fmt: str = Query("mp3"), token: Optional[str] = Query(default=None), authorization: Optional[str] = Header(default=None)):
+    auth_token = token_from_header(authorization) or token
+    user = await get_user_by_token(auth_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    fmt = "wav" if fmt.lower() == "wav" else "mp3"
+    s = await db.groove_sessions.find_one({"id": session_id, "user_id": user["user_id"]})
+    if not s or not s.get(f"mixdown_{fmt}"):
+        raise HTTPException(status_code=404, detail="Mixdown not found")
+    content, ct = await run_in_threadpool(get_object, s[f"mixdown_{fmt}"])
+    return Response(content=content, media_type="audio/wav" if fmt == "wav" else "audio/mpeg")
+
+
 @api_router.get("/audio/{track_id}")
 async def get_audio(track_id: str, token: Optional[str] = Query(default=None), authorization: Optional[str] = Header(default=None)):
     auth_token = token_from_header(authorization) or token

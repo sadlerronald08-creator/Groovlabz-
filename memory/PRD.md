@@ -36,8 +36,21 @@ GroovSesh — a simplified multitrack recording studio in the GroovLabz suite, w
 - Global: clickable GROOVLABZ watermark on every screen, bundled fonts + nebula bg.
 
 ## Verified
-- Backend: iteration_1 — 21/21 pytest pass.
-- Frontend: iteration_2 (boot/fonts/bg + no crashes), iteration_3 (brand rename + nebula + smoke) — all pass.
+- Backend: iteration_1 (21/21), iteration_4 (29/29 — incl. reorder + mixdown + get_mixdown).
+- Frontend: iteration_2, iteration_3, iteration_4 — all pass.
+
+## Update 2026-06-23 (v1.2 — match approved artwork)
+- User provided approved mockup (GroovLabz zip). Layering rules: approved interface artwork is the FRONT/source of truth; functional controls are TRANSPARENT overlays on top; no generic card UI in front of artwork.
+- Extracted approved panels -> /app/frontend/assets/images/groovsesh-home.png (+ quickjams, export crops available).
+- Rebuilt app/index.tsx: home now renders groovsesh-home.png (photorealistic blue-lightning Flying V studio scene) full-bleed, contain-fit, with transparent tap overlays positioned by fraction on each neck play-node (JAM NOW, Record Something, Review Takes, Neural Clean, Mixer/Studio, Session Reel, Collab), settings gear, hamburger, Quick Jams badge, GroovLabz stool watermark, and the 6 bottom tabs. Verified JAM NOW overlay -> /jam.
+- TODO (opt-in): apply same artwork-front approach to Quick Jams (recordings) + Export->GroovMash (Neural Clean/Strip stems) screens; shift palette to electric-blue to match; rename stem hand-off "GroovMash".
+- Redesign: Orbitron display font (bundled), animated neon SVG infinity logo, animated starfield background, gradient glowing buttons, staggered entrance animations.
+- Flying-V home: real Flying-V guitar (galaxy V-body + neon edge, pointed headstock w/ tuning pegs housing JAM NOW, strings, pickups, knobs, infinity inlay) in src/components/flying-v.tsx.
+- Real mixdown: backend pydub/ffmpeg — POST /api/sessions/{id}/mixdown?format=mp3|wav (applies volume/mute/solo/gain/trim), GET /api/mixdown/{id}. Export screen wired (MP3 free, WAV Pro-gated).
+- Procedural galaxy session cover art (SessionCover) seeded per session id — shown in My Sessions.
+- Drag-reorder track lanes (react-native-draggable-flatlist) + POST /api/sessions/{id}/reorder.
+- Audible metronome + count-in (src/audio/metronome.ts, bundled click wavs).
+- DEPLOY NOTE: mixdown needs ffmpeg on the server; preview has it. If production build lacks ffmpeg, mixdown returns 500 — ensure ffmpeg present in deploy image.
 
 ## Backlog
 - P1: Real audio mixdown for Export (currently shares stems); native low-latency engine (JUCE/Oboe/AVAudioEngine) bridged for true multitrack sync + live monitoring — needs dev build.
