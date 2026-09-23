@@ -212,6 +212,16 @@ SHOP_PRODUCTS = [
         "category": "Studio Monitoring",
     },
     {
+        "id": "gigbag",
+        "name": "GroovLabz Padded Gig Bag",
+        "price": 49.00,
+        "tag": "Gift Wrap",
+        "image": "/shop/gigbag.jpg",
+        "description": "Padded Flying‑V gig bag with GROOVLABZ ∞ embroidery, backpack straps and a strings/cable pocket. Add it to any Stage Kit as gift wrap — we pack the kit inside and tuck in your note.",
+        "specs": ["Fits all GroovLabz Flying‑Vs", "20 mm padding, backpack straps", "Accessory pocket for strings & cables", "Neon‑blue ∞ embroidery"],
+        "category": "Cables & Accessories",
+    },
+    {
         "id": "groovcable-trs",
         "name": "GroovCable Braided TRS Instrument Cable (3m)",
         "price": 29.99,
@@ -279,11 +289,21 @@ class ContactMessage(BaseModel):
 class CartItem(BaseModel):
     product_id: str
     quantity: int = Field(ge=1, le=99)
+    gift_note: Optional[str] = Field(default=None, max_length=300)
 
 
 class CheckoutRequest(BaseModel):
     items: List[CartItem]
     origin_url: str
+
+
+class StoreLinks(BaseModel):
+    ios: str = Field(default="", max_length=500)
+    android: str = Field(default="", max_length=500)
+
+
+APP_IDS = {"groovsesh", "groovbox", "groovmash", "groovtrackz", "groovcharts"}
+_STORE_HOSTS = ("apps.apple.com", "play.google.com", "www.apple.com")
 
 
 class ActivityCreate(BaseModel):
@@ -662,6 +682,33 @@ async def serve_file(fid: str):
     return Response(content=data, media_type=record.get("content_type", ctype), headers={"Cache-Control": "public, max-age=86400"})
 
 
+# ---- Store links (admin editable) ----------------------------
+@api_router.get("/store-links")
+async def get_store_links():
+    docs = await db.store_links.find({}, {"_id": 0}).to_list(20)
+    return {d["app_id"]: {"ios": d.get("ios", ""), "android": d.get("android", "")} for d in docs}
+
+
+@api_router.put("/admin/store-links/{app_id}")
+async def set_store_links(app_id: str, payload: StoreLinks, user=Depends(get_current_user)):
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    if app_id not in APP_IDS:
+        raise HTTPException(status_code=404, detail="Unknown app")
+    for url in (payload.ios, payload.android):
+        if url:
+            host = urlparse(url).hostname or ""
+            if not url.startswith("https://") or not any(host == h or host.endswith("." + h) for h in _STORE_HOSTS):
+                raise HTTPException(status_code=400, detail=f"Not a valid App Store / Google Play link: {url}")
+    await db.store_links.update_one(
+        {"app_id": app_id},
+        {"$set": {"app_id": app_id, "ios": payload.ios.strip(), "android": payload.android.strip(),
+                  "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True,
+    )
+    return {"app_id": app_id, "ios": payload.ios.strip(), "android": payload.android.strip()}
+
+
 # ---- Checkout (Stripe) --------------------------------------
 @api_router.post("/payments/checkout")
 async def create_checkout(req: CheckoutRequest, request: Request):
@@ -692,6 +739,7 @@ async def create_checkout(req: CheckoutRequest, request: Request):
     except HTTPException:
         pass
 
+    gift_notes = {it.product_id: it.gift_note.strip() for it in req.items if it.gift_note and it.gift_note.strip()}
     origin = req.origin_url.rstrip("/")
     for li in line_items:
         img = li["price_data"]["product_data"]["images"][0]
@@ -702,13 +750,15 @@ async def create_checkout(req: CheckoutRequest, request: Request):
         mode="payment",
         success_url=f"{origin}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{origin}/payment/cancel",
-        metadata={"user_id": user_id or "guest", "items": ",".join(lookup_summary)[:400]},
+        metadata={"user_id": user_id or "guest", "items": ",".join(lookup_summary)[:400],
+                  "gift_note": " | ".join(gift_notes.values())[:480]},
     )
 
     await db.payment_transactions.insert_one({
         "session_id": session.id,
         "user_id": user_id,
         "origin": origin,
+        "gift_notes": gift_notes,
         "items": [it.model_dump() for it in req.items],
         "amount": total,
         "currency": "usd",
@@ -738,6 +788,9 @@ async def send_receipt(session_id: str, buyer_email: Optional[str]):
             continue
         rows += (f'<tr><td style="padding:8px 0;border-bottom:1px solid #23283B">{escape(p["name"])} × {it["quantity"]}</td>'
                  f'<td style="padding:8px 0;border-bottom:1px solid #23283B;text-align:right">${p["price"] * it["quantity"]:.2f}</td></tr>')
+        note = (record.get("gift_notes") or {}).get(it["product_id"])
+        if note:
+            rows += f'<tr><td colspan="2" style="padding:0 0 8px 0;color:#94A3B8;font-style:italic">Gift note: “{escape(note)}”</td></tr>'
     account_link = (f'<p style="margin:20px 0"><a href="{origin}/account" style="background:#00F0FF;color:#0B0C10;padding:12px 20px;'
                     f'border-radius:999px;text-decoration:none;font-weight:bold">View your orders</a></p>') if origin.startswith("https://") else ""
     html = (

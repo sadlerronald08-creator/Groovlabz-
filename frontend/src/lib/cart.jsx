@@ -16,7 +16,7 @@ export function CartProvider({ children }) {
     localStorage.setItem("gl_cart", JSON.stringify(items));
   }, [items]);
 
-  const add = (product) => {
+  const add = (product, { openDrawer = true } = {}) => {
     setItems((cur) => {
       const found = cur.find((c) => c.product_id === product.id);
       if (found) {
@@ -35,9 +35,12 @@ export function CartProvider({ children }) {
         },
       ];
     });
-    setOpen(true);
+    if (openDrawer) setOpen(true);
   };
   const remove = (pid) => setItems((cur) => cur.filter((c) => c.product_id !== pid));
+  const setNote = (pid, gift_note) =>
+    setItems((cur) => cur.map((c) => (c.product_id === pid ? { ...c, gift_note } : c)));
+  const has = (pid) => items.some((c) => c.product_id === pid);
   const setQty = (pid, q) =>
     setItems((cur) =>
       cur
@@ -57,7 +60,7 @@ export function CartProvider({ children }) {
 
   return (
     <CartCtx.Provider
-      value={{ items, add, remove, setQty, clear, total, count, open, setOpen }}
+      value={{ items, add, remove, setQty, setNote, has, clear, total, count, open, setOpen }}
     >
       {children}
     </CartCtx.Provider>

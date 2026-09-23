@@ -8,6 +8,7 @@ STYLE = ("Professional e-commerce product photograph, studio lighting, dark char
          "electric-blue rim light, centered, sharp focus, no text overlays except the GROOVLABZ brand mark, no watermark, 4:5 portrait.")
 
 JOBS = {
+    "gigbag": ("A padded black Flying-V shaped guitar gig bag standing upright, zipped, with backpack straps, a small front accessory pocket, and an embroidered glowing electric-blue infinity symbol with 'GROOVLABZ' text on the front.", None),
     "lightning-v": ("Full-body shot of a Flying-V electric guitar standing on a stand: glossy PEARL WHITE body (bright white, not dark) struck with vivid electric-blue lightning bolts and cyan sparks, "
                     "electric-blue binding around the body edge, chrome humbuckers and hardware, white headstock with 'GROOVLABZ' in blue and block inlays on the rosewood fretboard.", "/app/frontend/public/jamnow/flying-v.png"),
     "storm-v": ("Full-body shot of a Flying-V electric guitar standing on a stand: glossy BLACK body struck with vivid electric-blue and violet lightning bolts, "

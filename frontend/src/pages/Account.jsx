@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LogOut, Zap, ShoppingBag, Activity } from "lucide-react";
 import api from "../lib/api";
 import { useAuth } from "../lib/auth";
@@ -40,14 +40,25 @@ export default function Account() {
             </h1>
             <p className="text-slate-400 mt-1 text-sm">{user.email}</p>
           </div>
-          <button
-            onClick={logout}
-            className="inline-flex items-center gap-2 h-10 px-4 rounded-full metal-border text-slate-300 hover:border-rose-400/50 hover:text-rose-300"
-            data-testid="logout-button"
-          >
-            <LogOut className="w-4 h-4" />
-            Sign out
-          </button>
+          <div className="flex items-center gap-2">
+            {user.role === "admin" && (
+              <Link
+                to="/admin/store-links"
+                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-400/20 text-sm font-semibold"
+                data-testid="admin-store-links-link"
+              >
+                Store links
+              </Link>
+            )}
+            <button
+              onClick={logout}
+              className="inline-flex items-center gap-2 h-10 px-4 rounded-full metal-border text-slate-300 hover:border-rose-400/50 hover:text-rose-300"
+              data-testid="logout-button"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign out
+            </button>
+          </div>
         </div>
 
         <div className="grid sm:grid-cols-3 gap-4 mb-8">

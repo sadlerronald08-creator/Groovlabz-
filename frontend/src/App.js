@@ -17,6 +17,7 @@ import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
+import AdminStoreLinks from "./pages/AdminStoreLinks";
 import Contact from "./pages/Contact";
 import About from "./pages/About";
 import Legal from "./pages/Legal";
@@ -42,6 +43,7 @@ function App() {
               <Route path="/login" element={<Login mode="login" />} />
               <Route path="/register" element={<Login mode="register" />} />
               <Route path="/account" element={<Account />} />
+              <Route path="/admin/store-links" element={<AdminStoreLinks />} />
               <Route path="/privacy" element={<Legal kind="privacy" />} />
               <Route path="/terms" element={<Legal kind="terms" />} />
               <Route path="/payment/success" element={<PaymentSuccess />} />

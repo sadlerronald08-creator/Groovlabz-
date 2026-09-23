@@ -4,6 +4,7 @@ import { useCart } from "../lib/cart";
 import { useAuth } from "../lib/auth";
 import api, { formatApiErrorDetail } from "../lib/api";
 import { toast } from "sonner";
+import KitGiftOptions from "./KitGiftOptions";
 
 export default function CartDrawer() {
   const { items, remove, setQty, total, open, setOpen, count } = useCart();
@@ -18,6 +19,7 @@ export default function CartDrawer() {
         items: items.map((i) => ({
           product_id: i.product_id,
           quantity: i.quantity,
+          gift_note: i.gift_note || null,
         })),
         origin_url: window.location.origin,
       });
@@ -115,6 +117,7 @@ export default function CartDrawer() {
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
+                    {it.product_id.startsWith("kit-") && <KitGiftOptions item={it} />}
                   </div>
                 </div>
               ))}
