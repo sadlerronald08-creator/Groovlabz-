@@ -93,8 +93,16 @@ hardware) + Account + About + Contact + legal pages.
 - Seeded paid orders for admin (see test_credentials.md) for review testing.
 - Tests: iteration_6 backend 15/15, frontend all pass.
 
+## Implemented (2026-06) — Kit gift wrap + admin store links
+- Gift wrap: `gigbag` product ($49, generated image); `KitGiftOptions` in cart for `kit-*` items (gig bag toggle +
+  gift note ≤300 chars). `CartItem.gift_note` → `payment_transactions.gift_notes`, Stripe metadata, receipt email.
+- Store links: `store_links` collection; `GET /api/store-links`, `PUT /api/admin/store-links/{app}` (admin, https +
+  apple/google host validation). `lib/storeLinks.js` + `StoreButtons` fall back to generic pages. Admin UI at
+  `/admin/store-links` (link on Account for role=admin).
+- Tests: iteration_7 backend 10/10, frontend all pass.
+
 ## Backlog (P0 / P1 / P2)
-- **P1** Real App Store / Google Play listing URLs per app (user to supply; apps must be published first)
+- **P1** User pastes real store URLs in /admin/store-links once apps are approved
 - **P1** Publish + connect groovlabs.com (Cloudflare, DNS-only) — platform UI
 
 

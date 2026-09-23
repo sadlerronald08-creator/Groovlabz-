@@ -1,0 +1,25 @@
+{
+  "summary": "Iteration 7 covers Kit gift wrap on cart items + Admin-editable store links. Backend: 10/10 pytest passing (test_iteration7.py). GET /api/shop/products/gigbag => 200 price=49.0. GET /api/store-links => 200 dict. PUT /api/admin/store-links/{app_id}: unauth=>401, non-admin=>403, invalid https/host=>400, unknown app_id=>404, valid apple+play URLs=>200 and GET returns them. POST /api/payments/checkout with kit-galaxy-v-strings-green (gift_note='Happy birthday Ron!') + gigbag => 200 checkout_url, Mongo payment_transactions doc contains gift_notes={'kit-galaxy-v-strings-green':'Happy birthday Ron!'}, items[0].gift_note set, and amount == kit price + 49.00. gift_note>300 chars => 422. Cleanup done (store-links reset to empty for groovbox/groovmash/groovcharts). Frontend (playwright, preview URL): /shop kit-add-to-cart adds cart-item-kit-lightning-v-strings-blue with kit-gift-* block; subtotal 538.04. Toggling kit-gigbag-toggle adds cart-item-gigbag and subtotal becomes 587.04; unchecking restores 538.04 and removes item. Typing 'Happy birthday!' in kit-gift-note-* and reloading page then opening drawer via open-cart-button preserves note (localStorage). Non-kit add-to-cart-groovwah shows cart-item-groovwah WITHOUT kit-gift block. checkout-button redirects to checkout.stripe.com (sandbox page showed correct line items). Admin store links: logged-out /admin/store-links redirects to /login. Admin login shows admin-store-links-link on /account; /admin/store-links renders admin-store-links-page with 5 admin-store-row-{groovsesh,groovbox,groovmash,groovtrackz,groovcharts} rows. Saving groovmash with valid apple+play URLs shows 'Live links set' + success toast; /apps/groovmash store-app-store-btn href=apple URL data-live='true', store-google-play-btn href=play URL data-live='true'. /apps/groovsesh still uses generic https://www.apple.com/app-store/ and https://play.google.com/store with data-live='false'. Invalid 'http://foo.com' for groovcharts-ios shows sonner error toast 'Not a valid App Store / Google Play link: http://foo.com'. Non-admin (fresh registered) sees no admin-store-links-link on /account and /admin/store-links redirects to /login. Regression: home/shop/product/apps/instruments pages load with 0 console errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": ["/app/backend/tests/test_iteration7.py", "/app/test_reports/pytest/iteration7.xml"],
+  "action_items": [
+    "Optional: on /apps/groovsesh the generic App Store badge href points to https://www.apple.com/app-store/ (an informational Apple page), not to an actual store search — acceptable per spec (data-live=false) but consider a search URL as generic fallback.",
+    "Ongoing: server.py at 998 lines exceeds 700-line guideline; recommend routers/ modularization (auth, shop, payments, reviews, store_links, uploads)."
+  ],
+  "critical_code_review_comments": [
+    "Backend PUT /api/admin/store-links correctly validates: role==admin (403 otherwise), APP_IDS membership (404), https:// scheme + apps.apple.com/play.google.com/www.apple.com hosts (400).",
+    "CartItem.gift_note has Field(max_length=300) so Pydantic returns 422 on overflow — correct.",
+    "create_checkout stores gift_notes on payment_transactions and adds joined gift_note (truncated to 480 chars) into Stripe metadata as required.",
+    "KitGiftOptions only renders inside CartDrawer for items whose product_id starts with 'kit-' (verified DOM); textarea enforces client-side 300-char slice; gigbag toggle uses cart add() with openDrawer:false so drawer doesn't jump on check.",
+    "useStoreLinks caches links in a module-level variable; full page navigation refreshes it — verified by navigating /admin -> /apps/groovmash after save. In-SPA nav without refresh() would keep stale cache; AdminStoreLinks.save() calls refresh() so admin sees update immediately.",
+    "resolveStore falls back to app.store.ios/android generic URLs when db entry empty — verified for groovsesh (data-live='false')."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration7.py"],
+  "success_rate": {"backend": "100% (10/10)", "frontend": "100% of scenarios"},
+  "test_credentials": "admin@groovlabz.com / admin123",
+  "seed_data_creation": "test_checkout_with_kit_and_gift_note inserted a payment_transactions doc (stripe test session cs_test_...); left in DB as historical record (no cleanup endpoint). All store_links entries reset to empty at end of run.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Run: REACT_APP_BACKEND_URL=<preview> MONGO_URL=mongodb://localhost:27017 DB_NAME=test_database pytest -o addopts= backend/tests/test_iteration7.py. store_links collection is empty/all-empty at end. When testing frontend store-links, remember useStoreLinks caches in-memory — do a full page.goto (not client-side nav) after admin save to see updated hrefs on /apps/{id}. The nav cart button testid is 'open-cart-button' (not 'navbar-cart-button')."
+}
