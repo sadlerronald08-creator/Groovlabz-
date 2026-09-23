@@ -4,6 +4,7 @@ import { ShoppingBag, Check } from "lucide-react";
 import api from "../lib/api";
 import { useCart } from "../lib/cart";
 import { toast } from "sonner";
+import StageKitBuilder from "../components/StageKitBuilder";
 
 export default function Shop() {
   const [products, setProducts] = useState([]);
@@ -11,7 +12,7 @@ export default function Shop() {
   const { add } = useCart();
 
   useEffect(() => {
-    api.get("/shop/products").then((r) => setProducts(r.data)).catch(() => {});
+    api.get("/shop/products").then((r) => setProducts(r.data.filter((p) => p.kind !== "bundle"))).catch(() => {});
   }, []);
 
   const categories = ["all", ...new Set(products.map((p) => p.category))];
@@ -29,6 +30,10 @@ export default function Shop() {
             Signature Flying‑V guitars, Bluetooth guitar transceivers, MIDI foot
             controllers, reference headphones, and studio essentials. Free shipping over $99.
           </p>
+        </div>
+
+        <div className="mb-14">
+          <StageKitBuilder />
         </div>
 
         <div className="flex gap-2 overflow-x-auto mb-8" role="tablist">

@@ -11,6 +11,7 @@ import bcrypt
 import jwt as pyjwt
 import stripe
 import httpx
+import requests
 import re
 import ipaddress
 from html import escape
@@ -19,7 +20,7 @@ from urllib.parse import urlparse
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, status
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, status, UploadFile, File
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, EmailStr, Field
@@ -222,6 +223,39 @@ SHOP_PRODUCTS = [
     },
 ]
 
+KIT_DISCOUNT = 0.15
+KIT_AMP_ID = "groovamp-12"
+
+
+def _product(pid):
+    return next((p for p in SHOP_PRODUCTS if p["id"] == pid), None)
+
+
+def _build_kits():
+    kits = []
+    amp = _product(KIT_AMP_ID)
+    for g in [p for p in SHOP_PRODUCTS if p["category"] == "Signature Guitars"]:
+        for s in [p for p in SHOP_PRODUCTS if p["category"] == "Strings"]:
+            full = g["price"] + amp["price"] + s["price"]
+            color = s["name"].split("—")[1].split("(")[0].strip()
+            kits.append({
+                "id": f"kit-{g['id']}-{s['id']}",
+                "name": f"Stage Kit — {g['name'].replace('GroovLabz ', '')} + GroovAmp 12 + {color} Strings",
+                "price": round(full * (1 - KIT_DISCOUNT), 2),
+                "full_price": round(full, 2),
+                "tag": "Stage Kit · 15% off",
+                "image": g["image"],
+                "kind": "bundle",
+                "includes": [g["id"], amp["id"], s["id"]],
+                "description": f"Everything for the stage in one tap: the {g['name']}, the 12‑watt GroovAmp 12 combo and a set of {color.lower()} neon strings — 15% off buying them separately.",
+                "specs": [g["name"], amp["name"], s["name"], "Saves 15% vs. separate purchase"],
+                "category": "Stage Kits",
+            })
+    return kits
+
+
+SHOP_PRODUCTS += _build_kits()
+
 
 # ---- Models ---------------------------------------------------
 class UserRegister(BaseModel):
@@ -256,6 +290,46 @@ class ActivityCreate(BaseModel):
     app_id: str
     action: str
     details: Optional[str] = None
+
+
+class ReviewCreate(BaseModel):
+    rating: int = Field(ge=1, le=5)
+    title: str = Field(min_length=1, max_length=120)
+    body: str = Field(min_length=1, max_length=2000)
+    photo_id: Optional[str] = None
+
+
+# ---- Object storage (Emergent) ---------------------------------
+STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
+STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
+STORAGE_APP = "groovlabz"
+storage_key: Optional[str] = None
+
+
+def init_storage(force: bool = False):
+    global storage_key
+    if storage_key and not force:
+        return storage_key
+    resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": os.environ.get("EMERGENT_LLM_KEY")}, timeout=30)
+    resp.raise_for_status()
+    storage_key = resp.json()["storage_key"]
+    return storage_key
+
+
+def put_object(path: str, data: bytes, content_type: str) -> dict:
+    resp = requests.put(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": init_storage(), "Content-Type": content_type}, data=data, timeout=120)
+    if resp.status_code == 404:
+        resp = requests.put(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": init_storage(force=True), "Content-Type": content_type}, data=data, timeout=120)
+    resp.raise_for_status()
+    return resp.json()
+
+
+def get_object(path: str):
+    resp = requests.get(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": init_storage()}, timeout=60)
+    if resp.status_code == 404:
+        resp = requests.get(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": init_storage(force=True)}, timeout=60)
+    resp.raise_for_status()
+    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
 
 
 # ---- Auth helpers ---------------------------------------------
@@ -485,6 +559,107 @@ async def get_product(pid: str):
     if not p:
         raise HTTPException(status_code=404, detail="Product not found")
     return p
+
+
+# ---- Reviews (verified buyers) --------------------------------
+async def _has_purchased(user_id: str, pid: str) -> bool:
+    orders = await db.payment_transactions.find({"user_id": user_id, "payment_status": "paid"}, {"items": 1}).to_list(500)
+    for o in orders:
+        for it in o.get("items", []):
+            if it.get("product_id") == pid:
+                return True
+            kit = _product(it.get("product_id"))
+            if kit and pid in kit.get("includes", []):
+                return True
+    return False
+
+
+@api_router.get("/shop/products/{pid}/reviews")
+async def list_reviews(pid: str):
+    if not _product(pid):
+        raise HTTPException(status_code=404, detail="Product not found")
+    reviews = await db.reviews.find({"product_id": pid}, {"_id": 0, "user_id": 0}).sort("created_at", -1).to_list(200)
+    avg = round(sum(r["rating"] for r in reviews) / len(reviews), 1) if reviews else None
+    return {"reviews": reviews, "count": len(reviews), "average": avg}
+
+
+@api_router.get("/shop/products/{pid}/can-review")
+async def can_review(pid: str, user=Depends(get_current_user)):
+    purchased = await _has_purchased(user["id"], pid)
+    existing = await db.reviews.find_one({"product_id": pid, "user_id": user["id"]})
+    return {"can_review": purchased and not existing, "purchased": purchased, "already_reviewed": bool(existing)}
+
+
+@api_router.post("/shop/products/{pid}/reviews")
+async def create_review(pid: str, payload: ReviewCreate, user=Depends(get_current_user)):
+    if not _product(pid):
+        raise HTTPException(status_code=404, detail="Product not found")
+    if not await _has_purchased(user["id"], pid):
+        raise HTTPException(status_code=403, detail="Only verified buyers can review this product")
+    if await db.reviews.find_one({"product_id": pid, "user_id": user["id"]}):
+        raise HTTPException(status_code=409, detail="You already reviewed this product")
+    photo_url = None
+    if payload.photo_id:
+        f = await db.files.find_one({"id": payload.photo_id, "user_id": user["id"], "is_deleted": False})
+        if not f:
+            raise HTTPException(status_code=400, detail="Photo not found")
+        photo_url = f"/api/files/{f['id']}"
+    doc = {
+        "id": str(uuid.uuid4()),
+        "product_id": pid,
+        "user_id": user["id"],
+        "author": user["name"],
+        "rating": payload.rating,
+        "title": payload.title.strip(),
+        "body": payload.body.strip(),
+        "photo_url": photo_url,
+        "verified": True,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.reviews.insert_one(doc)
+    doc.pop("_id", None)
+    doc.pop("user_id", None)
+    return doc
+
+
+ALLOWED_IMAGE_TYPES = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
+
+
+@api_router.post("/uploads/review-photo")
+async def upload_review_photo(file: UploadFile = File(...), user=Depends(get_current_user)):
+    ext = ALLOWED_IMAGE_TYPES.get(file.content_type)
+    if not ext:
+        raise HTTPException(status_code=400, detail="Only JPG, PNG or WEBP images are allowed")
+    data = await file.read()
+    if len(data) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Image must be under 5 MB")
+    fid = str(uuid.uuid4())
+    path = f"{STORAGE_APP}/reviews/{user['id']}/{fid}.{ext}"
+    try:
+        result = put_object(path, data, file.content_type)
+    except Exception as e:
+        logger.error(f"Upload failed: {e}")
+        raise HTTPException(status_code=502, detail="Photo upload failed, please try again")
+    await db.files.insert_one({
+        "id": fid, "user_id": user["id"], "storage_path": result["path"],
+        "original_filename": file.filename, "content_type": file.content_type,
+        "size": result.get("size", len(data)), "is_deleted": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+    return {"id": fid, "url": f"/api/files/{fid}"}
+
+
+@api_router.get("/files/{fid}")
+async def serve_file(fid: str):
+    record = await db.files.find_one({"id": fid, "is_deleted": False})
+    if not record:
+        raise HTTPException(status_code=404, detail="File not found")
+    try:
+        data, ctype = get_object(record["storage_path"])
+    except Exception as e:
+        logger.error(f"Storage read failed: {e}")
+        raise HTTPException(status_code=502, detail="File unavailable")
+    return Response(content=data, media_type=record.get("content_type", ctype), headers={"Cache-Control": "public, max-age=86400"})
 
 
 # ---- Checkout (Stripe) --------------------------------------
@@ -725,8 +900,15 @@ async def startup():
         await db.payment_transactions.create_index("session_id", unique=True)
         await db.login_attempts.create_index("identifier", unique=True)
         await db.login_attempts.create_index("updated_at", expireAfterSeconds=LOCKOUT_MINUTES * 60)
+        await db.reviews.create_index([("product_id", 1), ("user_id", 1)], unique=True)
+        await db.files.create_index("id", unique=True)
     except Exception as e:
         logger.warning(f"Index setup: {e}")
+    try:
+        init_storage()
+        logger.info("Storage initialized")
+    except Exception as e:
+        logger.error(f"Storage init failed: {e}")
 
     admin_email = os.environ.get("ADMIN_EMAIL", "admin@groovlabz.com").lower()
     admin_password = os.environ.get("ADMIN_PASSWORD", "admin123")

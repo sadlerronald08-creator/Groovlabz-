@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import api from "../lib/api";
 import { useCart } from "../lib/cart";
 import Lightbox from "../components/Lightbox";
+import Reviews from "../components/Reviews";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -29,7 +30,7 @@ export default function ProductDetail() {
   if (!p) return <div className="pt-40 text-center mono-label" data-testid="product-loading">Loading…</div>;
 
   const gallery = p.gallery || [{ src: p.image, label: p.name }];
-  const others = related.filter((x) => x.id !== p.id && x.category === p.category).slice(0, 3);
+  const others = related.filter((x) => x.id !== p.id && x.category === p.category && x.kind !== "bundle").slice(0, 3);
 
   return (
     <div className="pt-24 pb-20" data-testid="product-detail-page">
@@ -90,6 +91,25 @@ export default function ProductDetail() {
               <span className="inline-flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-cyan-300" /> 2‑year GroovLabz warranty</span>
             </div>
 
+            {p.includes && (
+              <div className="metal-border rounded-2xl p-5 mb-8" data-testid="product-includes">
+                <p className="mono-label mb-3">This kit includes</p>
+                <ul className="space-y-2">
+                  {p.includes.map((iid) => {
+                    const inc = related.find((x) => x.id === iid);
+                    return inc ? (
+                      <li key={iid} className="flex items-center gap-3">
+                        <img src={inc.image} alt={inc.name} className="w-10 h-10 rounded-lg object-cover" />
+                        <Link to={`/shop/${inc.id}`} className="text-sm text-slate-200 hover:text-cyan-300 flex-1">{inc.name}</Link>
+                        <span className="mono text-xs text-slate-500">${inc.price.toFixed(2)}</span>
+                      </li>
+                    ) : null;
+                  })}
+                </ul>
+                <p className="mono text-xs text-slate-500 mt-3">Separately ${p.full_price.toFixed(2)} · you save ${(p.full_price - p.price).toFixed(2)}</p>
+              </div>
+            )}
+
             <ul className="space-y-2.5 mb-8">
               {p.specs.map((s) => (
                 <li key={s} className="flex items-start gap-3 text-sm text-slate-200">
@@ -135,6 +155,8 @@ export default function ProductDetail() {
             </div>
           </div>
         )}
+
+        <Reviews productId={p.id} />
       </div>
 
       {lb !== null && <Lightbox images={gallery} index={lb} onClose={() => setLb(null)} onChange={setLb} />}

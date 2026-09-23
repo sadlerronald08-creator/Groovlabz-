@@ -4,6 +4,7 @@ import { APPS } from "../data/apps";
 import AppScreen from "../components/AppScreen";
 import AppCard from "../components/AppCard";
 import GuitarStage from "../components/GuitarStage";
+import StageKitBuilder from "../components/StageKitBuilder";
 
 export default function Home() {
   return (
@@ -115,6 +116,10 @@ export default function Home() {
 
       {/* ========== GUITAR STAGE ========== */}
       <GuitarStage />
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16" data-testid="home-stage-kit">
+        <StageKitBuilder compact />
+      </section>
 
       {/* ========== FEATURE STRIP ========== */}
       <section className="relative py-16 border-y border-slate-800/80 bg-slate-950/60">
