@@ -6,37 +6,37 @@ import { Appearance, StyleSheet, useColorScheme } from "react-native";
 export type ColorScheme = "light" | "dark";
 
 const dark = {
-  surface: "#0D0D12",
+  surface: "#02050B",
   onSurface: "#FFFFFF",
-  surfaceSecondary: "#1A1A24",
-  onSurfaceSecondary: "#E2E8F0",
-  surfaceTertiary: "#262636",
-  onSurfaceTertiary: "#CBD5E1",
-  surfaceInverse: "#FFFFFF",
-  onSurfaceInverse: "#0D0D12",
+  surfaceSecondary: "#071A2B",
+  onSurfaceSecondary: "#A7DFFF",
+  surfaceTertiary: "#0C2C46",
+  onSurfaceTertiary: "#91AFC2",
+  surfaceInverse: "#EAF6FF",
+  onSurfaceInverse: "#02050B",
 
-  brand: "#A855F7",
+  brand: "#2DA4FF",
   onBrand: "#FFFFFF",
-  brandPrimary: "#D946EF",
+  brandPrimary: "#2DA4FF",
   onBrandPrimary: "#FFFFFF",
-  brandSecondary: "#06B6D4",
-  onBrandSecondary: "#000000",
-  brandTertiary: "#8B5CF6",
+  brandSecondary: "#54BAFF",
+  onBrandSecondary: "#001018",
+  brandTertiary: "#C978FF",
   onBrandTertiary: "#FFFFFF",
 
-  success: "#10B981",
-  onSuccess: "#FFFFFF",
-  warning: "#F59E0B",
-  onWarning: "#FFFFFF",
-  error: "#EF4444",
+  success: "#79FF45",
+  onSuccess: "#04120A",
+  warning: "#FFB020",
+  onWarning: "#1A1200",
+  error: "#FF5A6A",
   onError: "#FFFFFF",
-  info: "#3B82F6",
-  onInfo: "#FFFFFF",
+  info: "#66CAFF",
+  onInfo: "#001018",
 
-  border: "#2E324A",
-  borderStrong: "#D946EF",
-  divider: "#1F2233",
-  muted: "#64748B",
+  border: "#12405F",
+  borderStrong: "#2D9BE4",
+  divider: "#0E2438",
+  muted: "#7FA9BF",
 };
 
 export type ThemeColors = typeof dark;
@@ -68,10 +68,10 @@ export function makeStyles<T extends StyleSheet.NamedStyles<T> | StyleSheet.Name
 }
 
 export const fonts = {
-  // Orbitron — futuristic display font for the brand, headings & buttons
-  display: "Orbitron",
-  displayBold: "OrbitronBold",
-  displayBlack: "OrbitronBlack",
+  // Space Grotesk — clean, bold, modern display for brand, headings & buttons
+  display: "SpaceGroteskMedium",
+  displayBold: "SpaceGroteskBold",
+  displayBlack: "SpaceGroteskBold",
   // Rajdhani — condensed numerics for timecodes / durations / metrics
   numeric: "RajdhaniBold",
   numericMedium: "Rajdhani",
@@ -90,16 +90,16 @@ export const glow = (color: string, radius = 16, opacity = 0.8) => ({
 });
 
 // Deterministic neon colors for track lanes / waveforms.
-export const trackColors = ["#06B6D4", "#D946EF", "#8B5CF6", "#10B981", "#F59E0B", "#3B82F6"];
+export const trackColors = ["#2DA4FF", "#54BAFF", "#C978FF", "#79FF45", "#66CAFF", "#38BDF8"];
 
 // Deterministic galaxy cover palette from a session id (procedural cover art).
 const coverPalettes: [string, string, string][] = [
-  ["#D946EF", "#8B5CF6", "#06B6D4"],
-  ["#06B6D4", "#3B82F6", "#8B5CF6"],
-  ["#10B981", "#06B6D4", "#8B5CF6"],
-  ["#F59E0B", "#D946EF", "#8B5CF6"],
-  ["#8B5CF6", "#D946EF", "#3B82F6"],
-  ["#3B82F6", "#06B6D4", "#10B981"],
+  ["#2DA4FF", "#3B1354", "#54BAFF"],
+  ["#54BAFF", "#102D5A", "#C978FF"],
+  ["#C978FF", "#3B1354", "#2DA4FF"],
+  ["#79FF45", "#102D5A", "#54BAFF"],
+  ["#2DA4FF", "#0C2C46", "#C978FF"],
+  ["#66CAFF", "#3B1354", "#2DA4FF"],
 ];
 export function coverPalette(id: string): [string, string, string] {
   let h = 0;

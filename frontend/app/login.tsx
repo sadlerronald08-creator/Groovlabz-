@@ -55,8 +55,8 @@ export default function Login() {
         bottomOffset={24}
         showsVerticalScrollIndicator={false}
       >
-        <InfinityLogo size={44} />
-        <Text style={styles.tagline}>MULTITRACK RECORDING STUDIO</Text>
+        <InfinityLogo height={56} />
+        <Text style={styles.tagline}>CAPTURE · CREATE · PLAY · REPEAT</Text>
 
         <View style={styles.card}>
           <Text style={styles.title}>{mode === "signin" ? "Welcome back" : "Create account"}</Text>
@@ -145,7 +145,7 @@ const useStyles = makeStyles((colors) => ({
   card: {
     width: "100%",
     maxWidth: 460,
-    backgroundColor: "rgba(26,26,36,0.82)",
+    backgroundColor: "rgba(7,20,34,0.80)",
     borderRadius: 20,
     padding: 22,
     borderWidth: 1,

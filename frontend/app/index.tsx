@@ -1,120 +1,173 @@
-import React, { useState } from "react";
-import { View, Pressable, StyleSheet, Platform, Linking } from "react-native";
-import { Image } from "expo-image";
+import React from "react";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useMutation } from "@tanstack/react-query";
-import * as Haptics from "expo-haptics";
-import { apiFetch } from "@/src/api";
-import { queryClient } from "@/src/query-client";
-import { useToast } from "@/src/components/toast";
-import { GROOVE_LABS_URL } from "@/src/config";
+import { Image } from "expo-image";
+import {
+  Play,
+  Microphone,
+  MusicNotes,
+  Sparkle,
+  SlidersHorizontal,
+  Stack,
+  UsersThree,
+  Gear,
+  House,
+  Waveform as WaveIcon,
+  Metronome,
+  Repeat,
+  BookOpen,
+  ListNumbers,
+  CaretRight,
+  Lightning,
+} from "phosphor-react-native";
+import { makeStyles, useTheme, fonts, glow } from "@/src/theme";
+import { GalaxyBackground, InfinityLogo } from "@/src/components/ui";
 
-const ART = require("../assets/images/groovsesh-home.png");
-const IMG_W = 654;
-const IMG_H = 1012;
+const GUITAR = require("../assets/images/flying-v.png");
 
 export default function Home() {
+  const styles = useStyles();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const toast = useToast();
-  const [box, setBox] = useState({ w: 0, h: 0 });
 
-  const createSession = useMutation({
-    mutationFn: () =>
-      apiFetch<any>("/sessions", {
-        method: "POST",
-        body: JSON.stringify({ title: `Session ${new Date().toLocaleDateString()}`, bpm: 90, count_in: true }),
-      }),
-    onSuccess: (s) => {
-      queryClient.invalidateQueries({ queryKey: ["sessions"] });
-      router.push(`/session/${s.id}`);
-    },
-    onError: () => toast.show("Could not create session", "error"),
-  });
-
-  const tap = (fn: () => void, heavy = false) => () => {
-    if (Platform.OS !== "web") Haptics.impactAsync(heavy ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-    fn();
-  };
-
-  // contain-fit rendered rect of the artwork inside the measured box
-  const scale = box.w > 0 ? Math.min(box.w / IMG_W, box.h / IMG_H) : 0;
-  const dw = IMG_W * scale;
-  const dh = IMG_H * scale;
-  const ox = (box.w - dw) / 2;
-  const oy = (box.h - dh) / 2;
-  // strip overlay from a node center (cx,cy) extending to the right edge
-  const node = (cx: number, cy: number) => ({
-    position: "absolute" as const,
-    left: ox + (cx - 0.06) * dw,
-    top: oy + (cy - 0.034) * dh,
-    width: (1 - (cx - 0.06)) * dw,
-    height: 0.068 * dh,
-  });
-  const spot = (cx: number, cy: number, fw: number, fh: number) => ({
-    position: "absolute" as const,
-    left: ox + (cx - fw / 2) * dw,
-    top: oy + (cy - fh / 2) * dh,
-    width: fw * dw,
-    height: fh * dh,
-  });
-
-  const nodes: { id: string; cx: number; cy: number; onPress: () => void; heavy?: boolean }[] = [
-    { id: "jam-now-button", cx: 0.51, cy: 0.247, onPress: () => router.push("/jam"), heavy: true },
-    { id: "fret-record", cx: 0.505, cy: 0.317, onPress: () => createSession.mutate() },
-    { id: "fret-review", cx: 0.477, cy: 0.388, onPress: () => router.push("/sessions") },
-    { id: "fret-neural", cx: 0.459, cy: 0.459, onPress: () => toast.show("Neural Clean runs in Export → GroovMash", "info") },
-    { id: "fret-mixer", cx: 0.446, cy: 0.531, onPress: () => router.push("/sessions") },
-    { id: "fret-reel", cx: 0.428, cy: 0.601, onPress: () => router.push("/sessions") },
-    { id: "fret-collab", cx: 0.428, cy: 0.682, onPress: () => toast.show("Collab — invite bandmates (coming soon)", "info") },
+  const nodes = [
+    { key: "jam", label: "JAM NOW", sub: "OPEN TUNER & METRONOME", icon: Play, color: colors.brandPrimary, route: "/jam", primary: true, testID: "jam-now-button" },
+    { key: "record", label: "RECORD SOMETHING", sub: "CAPTURE THE MOMENT", icon: Microphone, color: colors.brandSecondary, route: "/record", testID: "node-record" },
+    { key: "review", label: "REVIEW TAKES", sub: "LISTEN & MANAGE", icon: MusicNotes, color: colors.info, route: "/sessions", testID: "node-review" },
+    { key: "neural", label: "NEURAL CLEAN", sub: "REDUCE NOISE & WIND", icon: Sparkle, color: colors.brandTertiary, route: "/neural", testID: "node-neural" },
+    { key: "mixer", label: "MIXER / STUDIO", sub: "TONE & EFFECTS", icon: SlidersHorizontal, color: colors.brandSecondary, route: "/mixer", testID: "node-mixer" },
+    { key: "reel", label: "SESSION REEL", sub: "BUILD & ARRANGE", icon: Stack, color: colors.info, route: "/reel", testID: "node-reel" },
+    { key: "collab", label: "COLLAB", sub: "SHARE & PLAY TOGETHER", icon: UsersThree, color: colors.success, route: "/collab", testID: "node-collab" },
   ];
 
-  const tabs: { id: string; cx: number; onPress: () => void }[] = [
-    { id: "tab-home", cx: 0.073, onPress: () => {} },
-    { id: "tab-tuner", cx: 0.211, onPress: () => toast.show("Tuner — coming soon", "info") },
-    { id: "tab-metronome", cx: 0.375, onPress: () => toast.show("Open a session for the metronome", "info") },
-    { id: "tab-looper", cx: 0.544, onPress: () => toast.show("Looper — coming soon", "info") },
-    { id: "tab-songbook", cx: 0.713, onPress: () => toast.show("Songbook — coming soon", "info") },
-    { id: "tab-setlists", cx: 0.895, onPress: () => toast.show("Setlists — coming soon", "info") },
+  const tabs = [
+    { key: "home", label: "HOME", icon: House, route: "/", active: true },
+    { key: "tuner", label: "TUNER", icon: WaveIcon, route: "/tuner" },
+    { key: "metronome", label: "METRO", icon: Metronome, route: "/metronome" },
+    { key: "looper", label: "LOOPER", icon: Repeat, route: "/looper" },
+    { key: "songbook", label: "SONGS", icon: BookOpen, route: "/songbook" },
+    { key: "setlists", label: "SETS", icon: ListNumbers, route: "/setlists" },
   ];
-
-  const pressStyle = ({ pressed }: { pressed: boolean }) => ({ backgroundColor: pressed ? "rgba(56,189,248,0.18)" : "transparent", borderRadius: 12 });
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      <View style={styles.stage} onLayout={(e) => setBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-        <Image source={ART} style={StyleSheet.absoluteFill} contentFit="contain" cachePolicy="memory-disk" />
+    <GalaxyBackground>
+      <View style={{ flex: 1, paddingTop: insets.top + 8 }}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.presents}>GROOVLABZ PRESENTS</Text>
+            <InfinityLogo height={40} />
+            <Text style={styles.tagline}>CAPTURE · CREATE · PLAY · REPEAT</Text>
+          </View>
+          <View style={{ alignItems: "flex-end", gap: 10 }}>
+            <Pressable style={styles.gear} onPress={() => router.push("/settings")} testID="home-settings" hitSlop={8}>
+              <Gear size={22} color={colors.onSurfaceSecondary} weight="fill" />
+            </Pressable>
+            <Pressable style={styles.quickJams} onPress={() => router.push("/sessions")} testID="home-quickjams" hitSlop={8}>
+              <Lightning size={14} color={colors.onBrandSecondary} weight="fill" />
+              <Text style={styles.quickJamsText}>QUICK JAMS</Text>
+            </Pressable>
+          </View>
+        </View>
 
-        {box.w > 0 && (
-          <>
-            {/* top-right settings gear */}
-            <Pressable testID="home-settings" onPress={tap(() => router.push("/settings"))} style={[spot(0.94, 0.03, 0.13, 0.05), pressStyle]} />
-            {/* hamburger menu */}
-            <Pressable testID="home-menu" onPress={tap(() => router.push("/settings"))} style={[spot(0.06, 0.03, 0.13, 0.05), pressStyle]} />
-            {/* QUICK JAMS badge */}
-            <Pressable testID="home-quick-jams" onPress={tap(() => router.push("/sessions"))} style={[spot(0.84, 0.115, 0.26, 0.14), pressStyle]} />
+        {/* Hero + node menu */}
+        <View style={styles.stage}>
+          <Image source={GUITAR} style={styles.guitar} contentFit="contain" />
+          <View style={styles.nodes}>
+            {nodes.map((n) => {
+              const Icon = n.icon;
+              return (
+                <Pressable
+                  key={n.key}
+                  testID={n.testID}
+                  onPress={() => router.push(n.route as any)}
+                  style={({ pressed }) => [styles.nodeRow, { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] }]}
+                >
+                  <View
+                    style={[
+                      styles.nodeCircle,
+                      { borderColor: n.color, backgroundColor: n.primary ? n.color : "rgba(6,24,42,0.9)" },
+                      glow(n.color, n.primary ? 16 : 10, n.primary ? 0.9 : 0.6),
+                    ]}
+                  >
+                    <Icon size={n.primary ? 24 : 20} color={n.primary ? colors.onBrandPrimary : n.color} weight="fill" />
+                  </View>
+                  <View style={styles.nodeText}>
+                    <Text style={[styles.nodeLabel, n.primary && { color: colors.onSurface, fontSize: 17 }]} numberOfLines={1}>
+                      {n.label}
+                    </Text>
+                    <Text style={styles.nodeSub} numberOfLines={1}>
+                      {n.sub}
+                    </Text>
+                  </View>
+                  <CaretRight size={16} color={colors.muted} />
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
-            {/* guitar neck play-nodes */}
-            {nodes.map((n) => (
-              <Pressable key={n.id} testID={n.id} onPress={tap(n.onPress, n.heavy)} style={[node(n.cx, n.cy), pressStyle]} />
-            ))}
-
-            {/* GroovLabz watermark (stool) */}
-            <Pressable testID="groove-labs-watermark" onPress={() => Linking.openURL(GROOVE_LABS_URL).catch(() => {})} style={spot(0.8, 0.715, 0.22, 0.07)} />
-
-            {/* bottom tab bar */}
-            {tabs.map((t) => (
-              <Pressable key={t.id} testID={t.id} onPress={tap(t.onPress)} style={[spot(t.cx, 0.955, 0.16, 0.075), pressStyle]} />
-            ))}
-          </>
-        )}
+        {/* Bottom tab bar */}
+        <View style={[styles.tabBar, { paddingBottom: insets.bottom + 8 }]}>
+          {tabs.map((t) => {
+            const Icon = t.icon;
+            const active = !!t.active;
+            return (
+              <Pressable
+                key={t.key}
+                testID={`tab-${t.key}`}
+                style={styles.tab}
+                onPress={() => (t.active ? null : router.push(t.route as any))}
+                hitSlop={6}
+              >
+                <Icon size={22} color={active ? colors.brandSecondary : colors.muted} weight={active ? "fill" : "regular"} />
+                <Text style={[styles.tabLabel, { color: active ? colors.brandSecondary : colors.muted }]}>{t.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
-    </View>
+    </GalaxyBackground>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#05060A" },
-  stage: { flex: 1, position: "relative" },
-});
+const useStyles = makeStyles((colors) => ({
+  header: { flexDirection: "row", paddingHorizontal: 20, alignItems: "flex-start", gap: 12 },
+  presents: { fontFamily: fonts.textMedium, fontSize: 10, color: colors.onSurfaceSecondary, letterSpacing: 3, marginBottom: 2 },
+  tagline: { fontFamily: fonts.text, fontSize: 10, color: colors.muted, letterSpacing: 2, marginTop: 4 },
+  gear: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border, backgroundColor: "rgba(6,24,42,0.7)" },
+  quickJams: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: colors.brandSecondary,
+    ...(glow(colors.brandSecondary, 10, 0.6) as any),
+  },
+  quickJamsText: { fontFamily: fonts.displayBold, fontSize: 11, color: colors.onBrandSecondary, letterSpacing: 1 },
+
+  stage: { flex: 1, position: "relative", justifyContent: "center" },
+  guitar: { position: "absolute", left: -70, top: 0, bottom: 0, width: 260, height: "100%" },
+  nodes: { marginLeft: 168, marginRight: 16, gap: 10 },
+  nodeRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  nodeCircle: { width: 50, height: 50, borderRadius: 25, alignItems: "center", justifyContent: "center", borderWidth: 1.5 },
+  nodeText: { flex: 1 },
+  nodeLabel: { fontFamily: fonts.displayBold, fontSize: 14, color: colors.onSurface, letterSpacing: 0.5 },
+  nodeSub: { fontFamily: fonts.text, fontSize: 10, color: colors.muted, letterSpacing: 1, marginTop: 2 },
+
+  tabBar: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.divider,
+    backgroundColor: "rgba(2,8,16,0.85)",
+  },
+  tab: { alignItems: "center", gap: 3, minWidth: 44 },
+  tabLabel: { fontFamily: fonts.displayBold, fontSize: 9, letterSpacing: 1 },
+}));

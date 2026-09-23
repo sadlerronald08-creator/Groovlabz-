@@ -1,310 +1,218 @@
-import React, { useMemo } from "react";
+import React from "react";
 import { View, Text, Pressable, StyleSheet, ActivityIndicator, Linking, Platform, ViewStyle } from "react-native";
-import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import Svg, { Circle, Defs, LinearGradient as SvgGradient, Stop, Path } from "react-native-svg";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  withDelay,
-  Easing,
-} from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import { Image } from "expo-image";
+import Svg, { Defs, RadialGradient, Rect, Stop, Circle } from "react-native-svg";
 import { makeStyles, useTheme, fonts, glow, coverPalette, seedFrom } from "@/src/theme";
 import { GROOVE_LABS_URL } from "@/src/config";
+import { Wordmark, InfinityMark } from "@/src/components/wordmark";
 import { Waveform } from "@/src/components/waveform";
 
-const GALAXY_BG = require("../../assets/images/galaxy-bg.jpg");
+export { Wordmark, InfinityMark };
 
-/* ---------------- Animated starfield ---------------- */
-
-function Twinkle({ x, y, size, color, delay, dur }: { x: number; y: number; size: number; color: string; delay: number; dur: number }) {
-  const o = useSharedValue(0.2);
-  React.useEffect(() => {
-    o.value = withDelay(delay, withRepeat(withTiming(1, { duration: dur, easing: Easing.inOut(Easing.sin) }), -1, true));
-  }, []);
-  const st = useAnimatedStyle(() => ({ opacity: o.value }));
-  return (
-    <Animated.View
-      pointerEvents="none"
-      style={[
-        {
-          position: "absolute",
-          left: `${x}%`,
-          top: `${y}%`,
-          width: size,
-          height: size,
-          borderRadius: size,
-          backgroundColor: color,
-        },
-        glow(color, size * 2, 0.9),
-        st,
-      ]}
-    />
-  );
-}
-
-const STARS = Array.from({ length: 26 }).map((_, i) => {
-  const s = seedFrom("star" + i);
-  return {
-    x: (s % 100),
-    y: ((s >> 7) % 100),
-    size: 1.5 + ((s >> 3) % 3),
-    color: ["#FFFFFF", "#A5F3FC", "#F5D0FE", "#C4B5FD"][(s >> 5) % 4],
-    delay: (s % 2600),
-    dur: 1400 + ((s >> 4) % 2200),
-  };
-});
-
-export function GalaxyBackground({ children, stars = true }: { children: React.ReactNode; stars?: boolean }) {
+/** Smooth GroovLabz blue/purple radial nebula (matches homepage CSS). */
+export function GalaxyBackground({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
+  const stars = React.useMemo(
+    () =>
+      Array.from({ length: 26 }, (_, i) => {
+        const s = seedFrom(`star${i}`);
+        return {
+          x: (s % 1000) / 1000,
+          y: ((s >> 10) % 1000) / 1000,
+          r: 0.6 + ((s >> 3) % 10) / 8,
+          o: 0.12 + ((s >> 6) % 30) / 100,
+        };
+      }),
+    [],
+  );
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      <Image source={GALAXY_BG} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" />
-      {stars &&
-        STARS.map((s, i) => (
-          <Twinkle key={i} x={s.x} y={s.y} size={s.size} color={s.color} delay={s.delay} dur={s.dur} />
+      <Svg style={StyleSheet.absoluteFill}>
+        <Defs>
+          <RadialGradient id="n1" cx="20%" cy="2%" rx="70%" ry="55%" fx="20%" fy="2%">
+            <Stop offset="0" stopColor="#102D5A" stopOpacity="0.95" />
+            <Stop offset="0.55" stopColor="#102D5A" stopOpacity="0" />
+          </RadialGradient>
+          <RadialGradient id="n2" cx="84%" cy="16%" rx="62%" ry="50%" fx="84%" fy="16%">
+            <Stop offset="0" stopColor="#3B1354" stopOpacity="0.9" />
+            <Stop offset="0.55" stopColor="#3B1354" stopOpacity="0" />
+          </RadialGradient>
+          <RadialGradient id="n3" cx="60%" cy="100%" rx="80%" ry="45%" fx="60%" fy="100%">
+            <Stop offset="0" stopColor="#08243F" stopOpacity="0.8" />
+            <Stop offset="0.6" stopColor="#08243F" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Rect width="100%" height="100%" fill={colors.surface} />
+        <Rect width="100%" height="100%" fill="url(#n1)" />
+        <Rect width="100%" height="100%" fill="url(#n2)" />
+        <Rect width="100%" height="100%" fill="url(#n3)" />
+        {stars.map((st, i) => (
+          <Circle key={i} cx={`${st.x * 100}%`} cy={`${st.y * 100}%`} r={Math.max(0.4, st.r)} fill="#DCEBFF" opacity={st.o} />
         ))}
-      <LinearGradient
-        colors={["rgba(13,13,18,0.28)", "rgba(13,13,18,0.5)", "rgba(13,13,18,0.86)"]}
-        locations={[0, 0.5, 1]}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
+      </Svg>
       {children}
     </View>
   );
 }
 
-/* ---------------- Neon infinity logo ---------------- */
+/** GroovSesh brand lockup for the login / splash. */
+const BRAND_LOGO = require("../../assets/images/groovsesh-logo.png");
+const LOGO_AR = 416 / 100; // width / height of the exported logo asset
 
-export function InfinityLogo({ size = 30, showWordmark = true }: { size?: number; showWordmark?: boolean }) {
-  const { colors } = useTheme();
-  const pulse = useSharedValue(1);
-  React.useEffect(() => {
-    pulse.value = withRepeat(withTiming(0.55, { duration: 1500, easing: Easing.inOut(Easing.quad) }), -1, true);
-  }, []);
-  const glowStyle = useAnimatedStyle(() => ({ opacity: 0.45 + pulse.value * 0.4 }));
-
-  const w = size * 2.2;
-  const h = size * 1.15;
+export function InfinityLogo({ height = 54 }: { height?: number }) {
   return (
-    <View style={{ alignItems: "center" }} testID="infinity-logo">
-      <View style={[{ width: w, height: h }, glow(colors.brandPrimary, size * 0.9, 0.9)]}>
-        <Animated.View style={[StyleSheet.absoluteFill, glowStyle]}>
-          <Svg width={w} height={h} viewBox="0 0 110 55">
-            <Defs>
-              <SvgGradient id="infG" x1="0" y1="0" x2="1" y2="1">
-                <Stop offset="0" stopColor="#06B6D4" />
-                <Stop offset="0.5" stopColor="#8B5CF6" />
-                <Stop offset="1" stopColor="#D946EF" />
-              </SvgGradient>
-            </Defs>
-            {/* soft wide glow strokes */}
-            <Circle cx="35" cy="27.5" r="18" stroke="url(#infG)" strokeWidth="14" fill="none" opacity={0.28} />
-            <Circle cx="75" cy="27.5" r="18" stroke="url(#infG)" strokeWidth="14" fill="none" opacity={0.28} />
-          </Svg>
-        </Animated.View>
-        <Svg width={w} height={h} viewBox="0 0 110 55">
-          <Defs>
-            <SvgGradient id="infG2" x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0" stopColor="#22D3EE" />
-              <Stop offset="0.5" stopColor="#A78BFA" />
-              <Stop offset="1" stopColor="#F472B6" />
-            </SvgGradient>
-          </Defs>
-          <Circle cx="35" cy="27.5" r="18" stroke="url(#infG2)" strokeWidth="6" fill="none" strokeLinecap="round" />
-          <Circle cx="75" cy="27.5" r="18" stroke="url(#infG2)" strokeWidth="6" fill="none" strokeLinecap="round" />
-        </Svg>
-      </View>
-      {showWordmark && (
-        <Text
-          style={{
-            fontFamily: fonts.displayBlack,
-            fontSize: size * 0.44,
-            color: colors.onSurface,
-            letterSpacing: 3,
-            marginTop: 8,
-            textShadowColor: colors.brandSecondary,
-            textShadowRadius: 12,
-            textShadowOffset: { width: 0, height: 0 },
-          }}
-        >
-          GROOVSESH
-        </Text>
-      )}
-    </View>
+    <Image
+      source={BRAND_LOGO}
+      style={{ width: height * LOGO_AR, height }}
+      contentFit="contain"
+      testID="brand-wordmark"
+    />
   );
 }
 
-/* ---------------- Watermark ---------------- */
-
-export function GrooveWatermark({ style }: { style?: ViewStyle }) {
-  const styles = useStyles();
-  const open = () => Linking.openURL(GROOVE_LABS_URL).catch(() => {});
+/** Clickable "a GR∞VLABZ studio" watermark at the bottom of every screen. */
+export function GrooveWatermark() {
+  const styles = useWmStyles();
+  const { colors } = useTheme();
   return (
-    <Pressable onPress={open} style={[styles.watermark, style]} hitSlop={12} testID="groove-labs-watermark">
-      <Text style={styles.watermarkText}>
-        a <Text style={styles.watermarkBrand}>GROOVLABZ</Text> studio
+    <Pressable
+      style={styles.wrap}
+      onPress={() => Linking.openURL(GROOVE_LABS_URL)}
+      testID="groovlabz-watermark"
+      hitSlop={10}
+    >
+      <Text style={styles.text}>
+        a <Text style={styles.brand}>GR</Text>
+        <Text style={[styles.brand, { color: colors.brandTertiary }]}>∞</Text>
+        <Text style={styles.brand}>VLABZ</Text> studio
       </Text>
     </Pressable>
   );
 }
 
-/* ---------------- Neon button (gradient + glow) ---------------- */
-
-type NeonButtonProps = {
+type BtnProps = {
   label: string;
   onPress: () => void;
-  variant?: "primary" | "secondary" | "outline" | "ghost";
-  disabled?: boolean;
+  variant?: "primary" | "secondary";
   loading?: boolean;
+  disabled?: boolean;
   icon?: React.ReactNode;
-  haptic?: Haptics.ImpactFeedbackStyle;
-  testID?: string;
   style?: ViewStyle;
+  testID?: string;
 };
 
-export function NeonButton({
-  label,
-  onPress,
-  variant = "primary",
-  disabled,
-  loading,
-  icon,
-  haptic = Haptics.ImpactFeedbackStyle.Medium,
-  testID,
-  style,
-}: NeonButtonProps) {
+export function NeonButton({ label, onPress, variant = "primary", loading, disabled, icon, style, testID }: BtnProps) {
   const { colors } = useTheme();
-  const styles = useStyles();
-
-  const gradient: [string, string] =
-    variant === "primary" ? ["#F472B6", "#A855F7"] : variant === "secondary" ? ["#22D3EE", "#3B82F6"] : ["transparent", "transparent"];
-  const fg =
-    variant === "primary"
-      ? colors.onBrandPrimary
-      : variant === "secondary"
-      ? "#001018"
-      : colors.onSurface;
-  const isFilled = variant === "primary" || variant === "secondary";
-  const glowColor = variant === "secondary" ? colors.brandSecondary : colors.brandPrimary;
-
-  const handle = () => {
-    if (disabled || loading) return;
-    if (Platform.OS !== "web") Haptics.impactAsync(haptic).catch(() => {});
-    onPress();
-  };
-
+  const styles = useBtnStyles();
+  const isPrimary = variant === "primary";
   return (
     <Pressable
-      onPress={handle}
+      onPress={onPress}
       disabled={disabled || loading}
       testID={testID}
       style={({ pressed }) => [
-        styles.btnWrap,
-        isFilled ? glow(glowColor, 16, 0.7) : null,
-        { opacity: disabled ? 0.5 : pressed ? 0.88 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] },
+        styles.btn,
+        isPrimary ? glow(colors.brandPrimary, 18, 0.7) : undefined,
+        { opacity: disabled ? 0.5 : pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
         style,
       ]}
     >
-      <LinearGradient
-        colors={isFilled ? gradient : ["transparent", "transparent"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[
-          styles.btn,
-          !isFilled && { borderWidth: 1.5, borderColor: variant === "outline" ? colors.borderStrong : colors.border },
-        ]}
-      >
+      {isPrimary ? (
+        <LinearGradient
+          colors={[colors.brandSecondary, colors.brandPrimary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      ) : (
+        <View style={[StyleSheet.absoluteFill, styles.secondaryFill]} />
+      )}
+      <View style={styles.inner}>
         {loading ? (
-          <ActivityIndicator color={fg} />
+          <ActivityIndicator color={isPrimary ? colors.onBrandPrimary : colors.brandSecondary} />
         ) : (
-          <View style={styles.btnRow}>
+          <>
             {icon}
-            <Text style={[styles.btnLabel, { color: fg }]}>{label}</Text>
-          </View>
+            <Text style={[styles.label, { color: isPrimary ? colors.onBrandPrimary : colors.brandSecondary }]}>
+              {label}
+            </Text>
+          </>
         )}
-      </LinearGradient>
+      </View>
     </Pressable>
   );
 }
 
-/* ---------------- Procedural galaxy session cover ---------------- */
-
-export function SessionCover({
-  id,
-  title,
-  size = 56,
-  radius = 12,
-  style,
-}: {
-  id: string;
-  title?: string;
-  size?: number;
-  radius?: number;
-  style?: ViewStyle;
-}) {
+/** Procedural galaxy cover art for a saved session, seeded by id. */
+export function SessionCover({ id, title, size = 52, radius = 12 }: { id: string; title: string; size?: number; radius?: number }) {
   const pal = coverPalette(id);
-  const dots = useMemo(() => {
-    const s = seedFrom(id);
-    return Array.from({ length: 7 }).map((_, i) => {
-      const a = seedFrom(id + "d" + i);
-      return { x: (a % 90) + 5, y: ((a >> 6) % 80) + 5, r: 1 + ((a >> 3) % 2) };
-    });
-  }, [id]);
-  const initial = (title || "G").trim().charAt(0).toUpperCase();
+  const seed = seedFrom(id);
+  const stars = Array.from({ length: 5 }, (_, i) => ({
+    x: ((seed >> (i * 3)) % 100) / 100,
+    y: ((seed >> (i * 3 + 2)) % 100) / 100,
+  }));
+  const initial = (title || "S").trim().charAt(0).toUpperCase();
   return (
-    <View style={[{ width: size, height: size, borderRadius: radius, overflow: "hidden" }, glow(pal[0], size * 0.18, 0.55), style]}>
+    <View style={{ width: size, height: size, borderRadius: radius, overflow: "hidden" }}>
       <LinearGradient colors={[pal[0], pal[1]]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
       <LinearGradient
-        colors={["transparent", pal[2] + "AA"]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
+        colors={["transparent", pal[2] + "88"]}
+        start={{ x: 1, y: 0 }}
+        end={{ x: 0, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      {dots.map((d, i) => (
+      {stars.map((s, i) => (
         <View
           key={i}
-          style={{ position: "absolute", left: `${d.x}%`, top: `${d.y}%`, width: d.r * 2, height: d.r * 2, borderRadius: d.r, backgroundColor: "#FFFFFF", opacity: 0.85 }}
+          style={{
+            position: "absolute",
+            left: s.x * size,
+            top: s.y * size * 0.6,
+            width: 2,
+            height: 2,
+            borderRadius: 1,
+            backgroundColor: "#FFFFFF",
+            opacity: 0.7,
+          }}
         />
       ))}
-      <View style={{ position: "absolute", left: 0, right: 0, bottom: size * 0.14, alignItems: "center" }}>
-        <Waveform seed={id} color="#FFFFFF" height={size * 0.28} bars={Math.max(10, Math.round(size / 6))} width={size * 0.8} />
+      <View style={{ position: "absolute", bottom: 6, left: 6, right: 6 }}>
+        <Waveform seed={id} height={size * 0.28} color="#FFFFFF" bars={10} />
       </View>
-      <View style={StyleSheet.absoluteFill} />
-      <Text
-        style={{
-          position: "absolute",
-          top: size * 0.1,
-          left: size * 0.14,
-          fontFamily: fonts.displayBlack,
-          fontSize: size * 0.34,
-          color: "rgba(255,255,255,0.92)",
-          textShadowColor: "rgba(0,0,0,0.35)",
-          textShadowRadius: 4,
-        }}
-      >
-        {initial}
-      </Text>
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Text
+          style={{
+            fontFamily: fonts.displayBold,
+            fontSize: size * 0.34,
+            color: "#FFFFFF",
+            textAlign: "center",
+            marginTop: size * 0.12,
+            opacity: 0.95,
+          }}
+        >
+          {initial}
+        </Text>
+      </View>
     </View>
   );
 }
 
-const useStyles = makeStyles((colors) => ({
-  watermark: { alignSelf: "center", paddingVertical: 6 },
-  watermarkText: { fontFamily: fonts.text, fontSize: 11, color: colors.muted, letterSpacing: 1 },
-  watermarkBrand: { fontFamily: fonts.displayBold, color: colors.brandSecondary, letterSpacing: 1.5, fontSize: 10 },
-  btnWrap: { borderRadius: 999 },
+const useWmStyles = makeStyles((colors) => ({
+  wrap: { alignItems: "center", paddingVertical: 6 },
+  text: { fontFamily: fonts.textMedium, fontSize: 12, color: colors.muted, letterSpacing: 1 },
+  brand: { fontFamily: fonts.displayBold, color: colors.onSurfaceSecondary, letterSpacing: 1 },
+}));
+
+const useBtnStyles = makeStyles((colors) => ({
   btn: {
-    height: 54,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 24,
+    height: 56,
+    borderRadius: 16,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
   },
-  btnRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  btnLabel: { fontFamily: fonts.displayBold, fontSize: 15, letterSpacing: 1 },
+  secondaryFill: { backgroundColor: "transparent" },
+  inner: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
+  label: { fontFamily: fonts.displayBold, fontSize: 15, letterSpacing: 1 },
 }));

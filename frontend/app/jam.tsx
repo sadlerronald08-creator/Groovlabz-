@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet, Linking, ActivityIndicator } from "r
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAudioRecorder, useAudioRecorderState, RecordingPresets } from "expo-audio";
-import { X, Microphone, Check, ArrowCounterClockwise } from "phosphor-react-native";
+import { X, Microphone, Check, ArrowCounterClockwise, Waveform as WaveIcon, Metronome as MetroIcon } from "phosphor-react-native";
 import { makeStyles, useTheme, fonts } from "@/src/theme";
 import { GalaxyBackground, GrooveWatermark, NeonButton } from "@/src/components/ui";
 import { Waveform } from "@/src/components/waveform";
@@ -141,7 +141,14 @@ export default function Jam() {
           <View style={[styles.recDot, { backgroundColor: phase === "recording" ? colors.error : colors.muted }]} />
           <Text style={styles.recLabel}>{phase === "recording" ? "REC" : phase === "done" ? "READY" : "JAM NOW"}</Text>
         </View>
-        <View style={{ width: 40 }} />
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <Pressable onPress={() => router.push("/tuner")} testID="jam-tuner" hitSlop={8} style={styles.toolBtn}>
+            <WaveIcon size={18} color={colors.brandSecondary} weight="fill" />
+          </Pressable>
+          <Pressable onPress={() => router.push("/metronome")} testID="jam-metronome" hitSlop={8} style={styles.toolBtn}>
+            <MetroIcon size={18} color={colors.brandSecondary} weight="fill" />
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.center}>
@@ -199,6 +206,7 @@ export default function Jam() {
 const useStyles = makeStyles((colors) => ({
   top: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingBottom: 8 },
   closeBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceTertiary, alignItems: "center", justifyContent: "center" },
+  toolBtn: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: colors.border, backgroundColor: "rgba(6,24,42,0.7)", alignItems: "center", justifyContent: "center" },
   recPill: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.surfaceSecondary, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: colors.border },
   recDot: { width: 10, height: 10, borderRadius: 5 },
   recLabel: { fontFamily: fonts.displayBold, fontSize: 13, color: colors.onSurface, letterSpacing: 2 },
