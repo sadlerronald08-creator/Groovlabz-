@@ -38,7 +38,22 @@ hardware) + Account + About + Contact + legal pages.
   Emergent LLM key wired for future features.
 - Tests: 16/16 pytest backend tests pass; full frontend testing pass 100%.
 
+## Implemented (2026-06) — Jam Now Studio interface import
+- Cloned https://github.com/sadlerronald08-creator/Groovlabz- (GroovSesh Expo app). Copied approved
+  artwork to `/frontend/public/jamnow/` (groovsesh-home/quickjams/export, flying-v, galaxy-bg).
+- Five apps re-aligned to the user's GroovLabz Master Spec: GroovSesh, GroovBox, GroovMash,
+  GroovTrackz, GroovCharts (`data/apps.js`, each with `screen` config, `store` links, optional
+  `artwork`/`gallery`).
+- `AppScreen` phone-mockup component (Jam Now electric-blue galaxy style; GroovSesh uses real
+  artwork, others procedural via `ScreenHero`), `AppCard`, `StoreButtons`.
+- Home: hero shows GroovSesh artwork; 5 interface cards → `/apps/:id`.
+- New `AppDetail` page (`/apps/:id`): App Store / Google Play buttons, features, gallery, more apps.
+- Apps page uses mockups + inline store buttons. `DownloadModal` removed.
+- Tests: iteration_2 frontend 14/14 pass.
+- NOTE: store URLs are generic placeholders until real listings exist (edit `STORE` in apps.js).
+
 ## Backlog (P0 / P1 / P2)
+- **P1** Real App Store / Google Play listing URLs per app
 - **P1** Order emails on successful payment (via Resend)
 - **P1** Product detail pages with reviews
 - **P2** Migrate SHOP_PRODUCTS to DB with admin editor
