@@ -83,10 +83,21 @@ hardware) + Account + About + Contact + legal pages.
 - Tests: iteration_5 backend 16/16, frontend all pass.
 - Domain: user owns groovelabs.com (Cloudflare) — instructions given; needs Publish first.
 
-## Backlog (P0 / P1 / P2)
-- **P1** Real App Store / Google Play listing URLs per app (user to supply)
+## Implemented (2026-06) — Stage Kits, Reviews, logo fix
+- Stage Kit bundles: 9 auto-generated SKUs `kit-<guitar>-<strings>` (guitar + GroovAmp 12 + neon strings, 15% off,
+  `kind: bundle`, `includes`). `StageKitBuilder` on /shop and Home; bundles hidden from grid; detail page shows includes.
+- Verified-buyer reviews: `/api/shop/products/{id}/reviews` (GET/POST), `/can-review`; purchase check covers kits.
+  Photo upload → Emergent Object Storage (`/api/uploads/review-photo`, served via `/api/files/{id}`), `files` + `reviews`
+  collections. `Reviews` component on every product page.
+- Galaxy V headstock text corrected to GROOVLABZ via Nano Banana edit (`/scripts/fix_galaxy_logo.py`).
+- Seeded paid orders for admin (see test_credentials.md) for review testing.
+- Tests: iteration_6 backend 15/15, frontend all pass.
 
-- **P2** Product reviews on detail pages
+## Backlog (P0 / P1 / P2)
+- **P1** Real App Store / Google Play listing URLs per app (user to supply; apps must be published first)
+- **P1** Publish + connect groovlabs.com (Cloudflare, DNS-only) — platform UI
+
+
 - **P2** Migrate SHOP_PRODUCTS to DB with admin editor
 - **P2** Move to FastAPI lifespan handlers (@on_event deprecated)
 - **P2** Password reset flow (forgot-password + reset-password endpoints scaffolded but not built)
