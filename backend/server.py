@@ -50,6 +50,28 @@ api_router = APIRouter(prefix="/api")
 # ---- Product catalog (server-side source of truth) --------
 SHOP_PRODUCTS = [
     {
+        "id": "galaxy-v",
+        "name": "GroovLabz Galaxy V",
+        "price": 249.00,
+        "tag": "Signature",
+        "image": "/shop/galaxy-v.jpg",
+        "fit": "contain",
+        "description": "Playable Flying‑V electric guitar in a hand‑finished nebula galaxy wrap with neon‑green pickup rings, knobs and jack ring. GROOVLABZ headstock, ∞ inlay at the 12th fret.",
+        "specs": ["Flying‑V body, galaxy nebula finish", "Dual humbuckers, glow‑green rings", "24‑fret rosewood neck, ∞ inlay", "Ships set up & ready to play"],
+        "category": "Signature Guitars",
+    },
+    {
+        "id": "lightning-v",
+        "name": "GroovLabz Lightning V",
+        "price": 249.00,
+        "tag": "Signature",
+        "image": "/jamnow/flying-v.png",
+        "fit": "contain",
+        "description": "The GroovSesh‑interface Flying‑V, for real. Pearl‑white body struck with electric‑blue lightning, blue binding, chrome hardware and the GROOVLABZ headstock.",
+        "specs": ["Flying‑V body, blue lightning finish", "Dual chrome humbuckers", "Block‑inlay rosewood neck", "Pairs with GroovPuck Bluetooth adapter"],
+        "category": "Signature Guitars",
+    },
+    {
         "id": "groovpuck-bt",
         "name": "GroovPuck Bluetooth Guitar Adapter",
         "price": 149.99,
@@ -285,12 +307,47 @@ async def register(payload: UserRegister, response: Response):
     return {"id": uid, "email": email, "name": payload.name, "role": "user", "token": token}
 
 
+LOCKOUT_MAX_ATTEMPTS = 5
+LOCKOUT_MINUTES = 15
+
+
+def _client_ip(request: Request) -> str:
+    fwd = request.headers.get("x-forwarded-for", "")
+    return fwd.split(",")[0].strip() if fwd else (request.client.host if request.client else "unknown")
+
+
 @api_router.post("/auth/login")
-async def login(payload: UserLogin, response: Response):
+async def login(payload: UserLogin, request: Request, response: Response):
     email = payload.email.lower()
+    identifier = f"{_client_ip(request)}:{email}"
+    now = datetime.now(timezone.utc)
+    attempt = await db.login_attempts.find_one({"identifier": identifier})
+    locked_until = attempt.get("locked_until") if attempt else None
+    if locked_until and locked_until.replace(tzinfo=timezone.utc) > now:
+        retry = int((locked_until.replace(tzinfo=timezone.utc) - now).total_seconds() // 60) + 1
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many failed attempts. Try again in {retry} minute{'s' if retry != 1 else ''}.",
+            headers={"Retry-After": str(retry * 60)},
+        )
     user = await db.users.find_one({"email": email})
     if not user or not verify_password(payload.password, user["password_hash"]):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        count = (attempt.get("count", 0) if attempt and not attempt.get("locked_until") else 0) + 1
+        update = {"$set": {"count": count, "updated_at": now}}
+        if count >= LOCKOUT_MAX_ATTEMPTS:
+            update["$set"]["locked_until"] = now + timedelta(minutes=LOCKOUT_MINUTES)
+        else:
+            update["$unset"] = {"locked_until": ""}
+        await db.login_attempts.update_one({"identifier": identifier}, update, upsert=True)
+        if count >= LOCKOUT_MAX_ATTEMPTS:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Too many failed attempts. Account locked for {LOCKOUT_MINUTES} minutes.",
+                headers={"Retry-After": str(LOCKOUT_MINUTES * 60)},
+            )
+        remaining = LOCKOUT_MAX_ATTEMPTS - count
+        raise HTTPException(status_code=401, detail=f"Invalid email or password. {remaining} attempt{'s' if remaining != 1 else ''} left before lockout.")
+    await db.login_attempts.delete_one({"identifier": identifier})
     token = create_access_token(user["id"], email)
     set_auth_cookie(response, token)
     return {"id": user["id"], "email": email, "name": user["name"], "role": user.get("role", "user"), "token": token}
@@ -352,6 +409,10 @@ async def create_checkout(req: CheckoutRequest, request: Request):
         pass
 
     origin = req.origin_url.rstrip("/")
+    for li in line_items:
+        img = li["price_data"]["product_data"]["images"][0]
+        if img.startswith("/"):
+            li["price_data"]["product_data"]["images"] = [f"{origin}{img}"]
     session = stripe.checkout.Session.create(
         line_items=line_items,
         mode="payment",
@@ -511,6 +572,8 @@ async def startup():
     try:
         await db.users.create_index("email", unique=True)
         await db.payment_transactions.create_index("session_id", unique=True)
+        await db.login_attempts.create_index("identifier", unique=True)
+        await db.login_attempts.create_index("updated_at", expireAfterSeconds=LOCKOUT_MINUTES * 60)
     except Exception as e:
         logger.warning(f"Index setup: {e}")
 

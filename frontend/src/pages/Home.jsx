@@ -3,6 +3,7 @@ import { ArrowRight, Play, Sparkles } from "lucide-react";
 import { APPS } from "../data/apps";
 import AppScreen from "../components/AppScreen";
 import AppCard from "../components/AppCard";
+import GuitarStage from "../components/GuitarStage";
 
 export default function Home() {
   return (
@@ -111,6 +112,9 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      {/* ========== GUITAR STAGE ========== */}
+      <GuitarStage />
 
       {/* ========== FEATURE STRIP ========== */}
       <section className="relative py-16 border-y border-slate-800/80 bg-slate-950/60">
