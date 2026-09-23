@@ -52,14 +52,26 @@ hardware) + Account + About + Contact + legal pages.
 - Tests: iteration_2 frontend 14/14 pass.
 - NOTE: store URLs are generic placeholders until real listings exist (edit `STORE` in apps.js).
 
+## Implemented (2026-06) — Badges, lockout, signature guitars
+- Official Apple / Google Play badge artwork (`/public/badges`) in `StoreButtons`.
+- Login brute-force lockout: 5 fails per `ip:email` → 429 + Retry-After for 15 min
+  (`login_attempts` collection, TTL index). Counter cleared on success.
+- Shop: two signature Flying‑V guitars `galaxy-v` (user-uploaded artwork `/shop/galaxy-v.jpg`)
+  and `lightning-v` (`/jamnow/flying-v.png`), $249 each, category "Signature Guitars";
+  checkout prefixes relative images with origin for Stripe.
+- Homepage "Guitar Stage" section (`GuitarStage.jsx`) with add-to-cart.
+- Tests: iteration_3 backend 10/10, frontend all pass.
+- Pending from user: real store listing URLs; approved artwork for GroovBox/Mash/Trackz/Charts.
+
 ## Backlog (P0 / P1 / P2)
-- **P1** Real App Store / Google Play listing URLs per app
+- **P1** Real App Store / Google Play listing URLs per app (user to supply)
+- **P1** Gallery artwork for GroovBox, GroovMash, GroovTrackz, GroovCharts (user to upload)
 - **P1** Order emails on successful payment (via Resend)
 - **P1** Product detail pages with reviews
 - **P2** Migrate SHOP_PRODUCTS to DB with admin editor
 - **P2** Move to FastAPI lifespan handlers (@on_event deprecated)
 - **P2** Password reset flow (forgot-password + reset-password endpoints scaffolded but not built)
-- **P2** Brute-force lockout on /api/auth/login (5-fail 15-min lockout)
+
 - **P2** Split server.py into routers/ modules
 
 ## Test Credentials
