@@ -1,0 +1,32 @@
+{
+  "summary": "Iteration 5 verification: shop expanded to 15 products with 3 signature guitars (lightning-v $399 with gallery[4]+sheet; galaxy-v $299 with gallery[4]+sheet; storm-v $299 with gallery[4]+sheet). Backend: 16/16 pytest passing (products list, product detail, 404, 11 static images, checkout stores origin+correct amount 328.98=299+2*14.99, payments/status returns pending, send_receipt sets receipt_sent+buyer_email and is idempotent on second call). Frontend: /shop renders 15 cards; category filters signature-guitars/amps/strings/pedals present; ProductDetail for lightning-v shows name, $399.00, 4 thumbs, thumb-2 swaps main image to lightning-v-pickups.jpg, main-image opens lightbox at '3 / 4', next→'4 / 4', ArrowLeft→'3 / 4', Escape closes; spec sheet has Body row; add-to-cart works and opens drawer; related shows related-galaxy-v & related-storm-v. /shop/groovwah has no gallery and no spec-sheet as expected. /shop/doesnotexist redirects to /shop. AppDetail lightbox: groovsesh screen-open→'1 / 3', gallery-2→'3 / 3'; groovbox has 2 gallery buttons, landscape-open→'2 / 2'; groovtrackz has no gallery, single-screen lightbox opens with no counter (correct). Home guitar stage shows 3 guitars with correct prices; stage-guitar-link-storm-v→/shop/storm-v; stage-add-to-cart-galaxy-v opens the cart drawer (confirmed via screenshot).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "console_warnings": [
+      {"page": "/apps/groovbox", "warning": "React: 'Encountered two children with the same key /jamnow/groovbox-home.jpg' — in AppDetail.jsx the `screens` array uses `g.src` as React key; for groovbox, `app.artwork` and `app.landscape.src` both point to /jamnow/groovbox-home.jpg, producing duplicate keys. Fix: use index-based key like `${i}-${g.src}` or ensure landscape uses a distinct src.", "priority": "LOW"},
+      {"page": "site-wide", "warning": "2× generic 'Failed to load resource: 404' console errors observed on some navigations (source not surfaced by console message). Non-blocking."}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iteration5.py", "/app/test_reports/pytest/iteration5.xml"],
+  "action_items": [
+    "AppDetail.jsx: dedupe React key on the `screens` array (use `${i}-${g.src}` or filter landscape when it equals artwork) — groovbox emits duplicate-key warning."
+  ],
+  "critical_code_review_comments": [
+    "server.send_receipt is correctly idempotent (guarded by receipt_sent) and stores buyer_email; verified end-to-end.",
+    "Checkout persists origin (rstripped) and amount matches sum(price*qty); confirmed via direct Mongo inspection.",
+    "Lightbox correctly handles Escape / Arrow keys / next-prev and shows counter only when count>1 (groovtrackz single screen has no counter as spec requires).",
+    "ProductDetail hides gallery when only one image and hides spec-sheet when product has no `sheet` (groovwah verified).",
+    "server.py is now 763 lines — consider splitting into routers/{auth,shop,payments,contact,account}.py to stay <700 lines per module.",
+    "AppDetail duplicate-key: `screens.map((g,i) => <button key={g.src} ...>)` breaks when artwork.src == landscape.src (groovbox case)."
+  ],
+  "updated_files": ["/app/backend/tests/test_iteration5.py"],
+  "success_rate": {"backend": "100% (16/16)", "frontend": "100% of specified scenarios"},
+  "test_credentials": "admin@groovlabz.com / admin123 — no login performed this iteration to avoid lockout.",
+  "seed_data_creation": "Test only created a payment_transactions doc via /api/payments/checkout (unpaid, left in DB) and a synthetic 'cs_test_receipt_*' doc that was inserted+deleted within test_send_receipt.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend send_receipt is guarded by receipt_sent and does not throw when EMERGENT_EMAIL_KEY is set (it is). Iteration 5 test file /app/backend/tests/test_iteration5.py can be re-run with `pytest -o addopts= backend/tests/test_iteration5.py`. Only known nit: React duplicate-key warning at /apps/groovbox because artwork.src == landscape.src."
+}

@@ -71,10 +71,22 @@ hardware) + Account + About + Contact + legal pages.
 - Fixed pre-existing mobile horizontal overflow (closed cart drawer) + `overflow-x: hidden`.
 - Tests: iteration_4 frontend pass.
 
+## Implemented (2026-06) — Shop expansion, product pages, lightbox, receipts
+- 3 signature guitars: Lightning V (white, built-in Bluetooth) $399, Galaxy V $299, Storm V (black) $299.
+  Storm V + white Lightning V product shots generated with Gemini Nano Banana (`/scripts/gen_products.py`);
+  close-up crops (`/scripts/process_products.py`) → gallery + spec `sheet` per guitar.
+- New gear (generated images): GroovMic BT, GroovWah, GroovAmp 12/10/7 W, Neon Strings green/purple/blue.
+- `/shop/:id` ProductDetail page (gallery, spec sheet, related); Shop cards link to it; Home stage shows 3 guitars.
+- `Lightbox` component (arrows, keyboard, swipe) on product pages and app detail screens.
+- Receipt emails: `send_receipt()` on paid (status poll + webhook) → buyer + OWNER_EMAIL, link to `{origin}/account`,
+  idempotent via `receipt_sent`. Checkout stores `origin`.
+- Tests: iteration_5 backend 16/16, frontend all pass.
+- Domain: user owns groovelabs.com (Cloudflare) — instructions given; needs Publish first.
+
 ## Backlog (P0 / P1 / P2)
 - **P1** Real App Store / Google Play listing URLs per app (user to supply)
-- **P1** Order emails on successful payment (via Resend)
-- **P1** Product detail pages with reviews
+
+- **P2** Product reviews on detail pages
 - **P2** Migrate SHOP_PRODUCTS to DB with admin editor
 - **P2** Move to FastAPI lifespan handlers (@on_event deprecated)
 - **P2** Password reset flow (forgot-password + reset-password endpoints scaffolded but not built)
