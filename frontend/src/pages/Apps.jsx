@@ -36,7 +36,8 @@ export default function Apps() {
                     </span>
                   </div>
                   <h2 className="display text-3xl sm:text-4xl font-black mb-3">{app.name}</h2>
-                  <p className="text-cyan-300 mono text-sm uppercase tracking-widest mb-4">{app.tagline}</p>
+                  <p className="text-cyan-300 mono text-sm uppercase tracking-widest mb-1">{app.tagline}</p>
+                  <p className="jn-label text-[11px] text-[#66CAFF] mb-4">{app.motto}</p>
                   <p className="text-slate-300 leading-relaxed mb-6">{app.description}</p>
                   <ul className="space-y-3 mb-8">
                     {app.features.map((f) => (
@@ -59,8 +60,8 @@ export default function Apps() {
                 </div>
                 <div className={flipped ? "lg:order-1" : ""}>
                   <Link to={`/apps/${app.id}`} className="jn-card group block relative max-w-[330px] mx-auto" data-testid={`app-screen-link-${app.id}`}>
-                    <div className="absolute -inset-6 blur-3xl opacity-30 group-hover:opacity-50 transition-opacity" style={{ background: app.screen.accent }} />
-                    <AppScreen app={app} fluid className="relative" />
+                    <div className="absolute -inset-6 blur-3xl opacity-30 group-hover:opacity-50 transition-opacity" style={{ background: app.accent }} />
+                    <AppScreen app={app} className="relative" />
                   </Link>
                 </div>
               </div>

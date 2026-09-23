@@ -40,7 +40,8 @@ export default function AppDetail() {
             <h1 className="display text-4xl sm:text-5xl lg:text-6xl font-black leading-[0.95] mb-4" data-testid="app-detail-name">
               {app.name}
             </h1>
-            <p className="text-cyan-300 mono text-sm uppercase tracking-widest mb-6">{app.tagline}</p>
+            <p className="text-cyan-300 mono text-sm uppercase tracking-widest mb-2">{app.tagline}</p>
+            <p className="jn-label text-xs text-[#66CAFF] mb-6" data-testid="app-detail-motto">{app.motto}</p>
             <p className="text-slate-300 text-lg leading-relaxed mb-8 max-w-2xl">{app.description}</p>
 
             <section className="metal-border rounded-2xl p-6 sm:p-8 mb-10 glow-blue" data-testid="app-detail-store-section">
@@ -67,8 +68,8 @@ export default function AppDetail() {
 
           <div className="lg:col-span-5 fade-up">
             <div className="relative max-w-[360px] mx-auto">
-              <div className="absolute -inset-8 blur-3xl opacity-40" style={{ background: `radial-gradient(circle, ${app.screen.accent}, transparent 70%)` }} />
-              <AppScreen app={app} fluid className="relative" />
+              <div className="absolute -inset-8 blur-3xl opacity-40" style={{ background: `radial-gradient(circle, ${app.accent}, transparent 70%)` }} />
+              <AppScreen app={app} className="relative" />
             </div>
             {app.gallery && (
               <div className="mt-8">
@@ -76,7 +77,7 @@ export default function AppDetail() {
                 <div className="flex justify-center gap-3" data-testid="app-detail-gallery">
                   {app.gallery.map((g) => (
                     <figure key={g.src} className="w-[100px]">
-                      <div className="rounded-xl overflow-hidden border border-cyan-400/30 aspect-[0.64]">
+                      <div className="rounded-xl overflow-hidden border border-cyan-400/30 aspect-[0.6]">
                         <img src={g.src} alt={g.label} className="w-full h-full object-cover" />
                       </div>
                       <figcaption className="mono text-[9px] text-slate-400 text-center mt-2 uppercase tracking-wider">{g.label}</figcaption>
@@ -87,6 +88,19 @@ export default function AppDetail() {
             )}
           </div>
         </div>
+
+        {app.landscape && (
+          <div className="mt-20" data-testid="app-detail-landscape">
+            <p className="mono-label mb-3">Full studio view</p>
+            <h2 className="display text-2xl sm:text-3xl font-black mb-8">{app.landscape.label}</h2>
+            <div className="relative">
+              <div className="absolute -inset-6 blur-3xl opacity-30" style={{ background: app.accent }} />
+              <div className="jn-phone relative aspect-[3/2] rounded-[20px]">
+                <img src={app.landscape.src} alt={app.landscape.label} className="absolute inset-0 w-full h-full object-cover" />
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="mt-28">
           <p className="mono-label mb-3">More from the ecosystem</p>

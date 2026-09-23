@@ -10,9 +10,9 @@ export default function AppCard({ app, index = 0 }) {
       style={{ animationDelay: `${index * 80}ms` }}
       data-testid={`app-card-${app.id}`}
     >
-      <div className="relative px-3 pt-3">
-        <div className="absolute inset-x-6 bottom-0 h-24 blur-3xl opacity-40 group-hover:opacity-70 transition-opacity" style={{ background: app.screen.accent }} />
-        <AppScreen app={app} fluid className="relative transition-transform duration-500 group-hover:-translate-y-2" />
+      <div className="relative px-3 pt-3 aspect-[1/2] flex items-center">
+        <div className="absolute inset-x-6 bottom-0 h-24 blur-3xl opacity-40 group-hover:opacity-70 transition-opacity" style={{ background: app.accent }} />
+        <AppScreen app={app} className="relative transition-transform duration-500 group-hover:-translate-y-2" />
       </div>
       <div className="mt-5 px-1">
         <div className="flex items-center justify-between gap-2 mb-1">

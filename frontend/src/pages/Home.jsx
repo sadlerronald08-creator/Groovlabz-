@@ -76,7 +76,7 @@ export default function Home() {
           <div className="lg:col-span-5 fade-up">
             <Link to="/apps/groovsesh" className="jn-card group block relative max-w-[340px] mx-auto" data-testid="hero-groovsesh-screen-link">
               <div className="absolute -inset-8 bg-gradient-to-br from-[#2DA4FF]/30 via-blue-600/10 to-[#C978FF]/20 blur-3xl" />
-              <AppScreen app={APPS[0]} fluid className="relative" />
+              <AppScreen app={APPS[0]} className="relative" />
               <p className="relative mt-4 text-center mono text-[10px] uppercase tracking-widest text-cyan-300">
                 GroovSesh · Flying‑V home interface
               </p>
