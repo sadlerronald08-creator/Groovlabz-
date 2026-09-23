@@ -1,0 +1,32 @@
+{
+  "summary": "Frontend-only verification of approved artwork rollout for the 5 GroovLabz apps. All artwork loads (naturalWidth>0), per-app frame ratios render on home/apps/detail. GroovBox is the ONLY detail page with app-detail-landscape (correct). Gallery counts correct: groovsesh=3, groovmash=2, groovbox/groovtrackz/groovcharts=0. All /jamnow/*.png|jpg static assets return 200. Regression: hero-groovsesh-screen-link, home-guitar-stage, /shop 200, /account login (admin@groovlabz.com/admin123) working. One issue found: horizontal overflow at 390px viewport caused by the closed cart-drawer aside.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "CartDrawer",
+        "issue": "At 390px viewport, document.scrollWidth=426 vs clientWidth=390 (36px horizontal overflow). Root cause: [data-testid=\"cart-drawer\"] aside is fixed top-0 right-0 w-full and stays laid out in the flow at right:0, extending past viewport when hidden. Home cards themselves render correctly as 2 columns (both cards at y=1890, x=16/205), so the overflow is exclusively from the drawer. Spec explicitly requires no horizontal overflow at 390px.",
+        "selector": "[data-testid=\"cart-drawer\"]",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Add overflow-x:hidden to body OR translate cart-drawer off-screen via transform (not positional) OR conditionally render/set display:none when closed, so it doesn't inflate scrollWidth at 390px."
+  ],
+  "critical_code_review_comments": [
+    "AppScreen renders artwork via <img object-cover> with per-app frame [W,H]; ratios are consistent and images load with naturalWidth ≥512 for all 5 apps. Good.",
+    "AppDetail correctly gates gallery on app.gallery and landscape on app.landscape. GroovBox uniquely shows app-detail-landscape as required.",
+    "Cart drawer accessibility: since always in DOM at right:0 w-full, consider aria-hidden + transform to keep it out of layout bounds."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "95%"},
+  "test_credentials": "admin@groovlabz.com / admin123 (verified working; redirects to /account on submit)",
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "All artwork-related checks from this iteration pass. Only outstanding item is a 36px horizontal overflow at 390px caused by the fixed cart-drawer aside (w-full at right:0 while closed). Not caused by app cards (they wrap to 2 columns correctly)."
+}

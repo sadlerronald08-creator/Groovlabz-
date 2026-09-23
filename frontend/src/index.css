@@ -53,6 +53,7 @@
         min-height: 100vh;
         background: var(--gl-bg);
         color: var(--gl-text);
+        overflow-x: hidden;
     }
     body {
         font-family: 'Plus Jakarta Sans', system-ui, sans-serif;

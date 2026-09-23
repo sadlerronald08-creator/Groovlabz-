@@ -63,9 +63,16 @@ hardware) + Account + About + Contact + legal pages.
 - Tests: iteration_3 backend 10/10, frontend all pass.
 - Pending from user: real store listing URLs; approved artwork for GroovBox/Mash/Trackz/Charts.
 
+## Implemented (2026-06) — Approved artwork for all 5 apps
+- User uploaded interface art for GroovBox (landscape tablet), GroovMash, GroovTrackz, GroovCharts
+  → `/public/jamnow/<id>-home.*`. `AppScreen` now renders real artwork for every app with per-app
+  `frame` ratio; procedural mockups (`ScreenHero`) removed. `motto` line added per app.
+- GroovBox detail page gets a full-width "Full studio view" landscape section.
+- Fixed pre-existing mobile horizontal overflow (closed cart drawer) + `overflow-x: hidden`.
+- Tests: iteration_4 frontend pass.
+
 ## Backlog (P0 / P1 / P2)
 - **P1** Real App Store / Google Play listing URLs per app (user to supply)
-- **P1** Gallery artwork for GroovBox, GroovMash, GroovTrackz, GroovCharts (user to upload)
 - **P1** Order emails on successful payment (via Resend)
 - **P1** Product detail pages with reviews
 - **P2** Migrate SHOP_PRODUCTS to DB with admin editor

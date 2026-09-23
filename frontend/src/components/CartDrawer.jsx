@@ -39,7 +39,7 @@ export default function CartDrawer() {
       )}
       <aside
         className={`fixed top-0 right-0 h-full w-full sm:w-[440px] glass border-l border-cyan-500/20 z-50 transform transition-transform duration-300 ${
-          open ? "translate-x-0" : "translate-x-full"
+          open ? "translate-x-0" : "translate-x-full invisible"
         }`}
         data-testid="cart-drawer"
         aria-hidden={!open}
