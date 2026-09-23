@@ -1,24 +1,31 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Zap } from "lucide-react";
 import { APPS, getApp } from "../data/apps";
 import AppScreen from "../components/AppScreen";
 import StoreButtons from "../components/StoreButtons";
 import AppCard from "../components/AppCard";
+import Lightbox from "../components/Lightbox";
 
 export default function AppDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const app = getApp(id);
+  const [lb, setLb] = useState(null);
 
   useEffect(() => {
     if (!app) navigate("/apps", { replace: true });
     window.scrollTo(0, 0);
+    setLb(null);
   }, [app, navigate, id]);
 
   if (!app) return null;
   const Icon = app.icon;
   const others = APPS.filter((a) => a.id !== app.id);
+  const screens = [
+    ...(app.gallery || [{ src: app.artwork, label: `${app.name} home` }]),
+    ...(app.landscape ? [app.landscape] : []),
+  ];
 
   return (
     <div className="pt-24 pb-20" data-testid="app-detail-page">
@@ -67,21 +74,22 @@ export default function AppDetail() {
           </div>
 
           <div className="lg:col-span-5 fade-up">
-            <div className="relative max-w-[360px] mx-auto">
+            <button onClick={() => setLb(0)} className="jn-card relative max-w-[360px] mx-auto block w-full text-left cursor-zoom-in" data-testid="app-detail-screen-open" aria-label="Open screen full size">
               <div className="absolute -inset-8 blur-3xl opacity-40" style={{ background: `radial-gradient(circle, ${app.accent}, transparent 70%)` }} />
               <AppScreen app={app} className="relative" />
-            </div>
-            {app.gallery && (
+              <span className="absolute bottom-3 right-3 glass rounded-full px-3 py-1 mono text-[10px] uppercase tracking-widest text-cyan-200">Tap to enlarge</span>
+            </button>
+            {screens.length > 1 && (
               <div className="mt-8">
                 <p className="mono-label mb-3 text-center">Approved interface screens</p>
                 <div className="flex justify-center gap-3" data-testid="app-detail-gallery">
-                  {app.gallery.map((g) => (
-                    <figure key={g.src} className="w-[100px]">
-                      <div className="rounded-xl overflow-hidden border border-cyan-400/30 aspect-[0.6]">
+                  {screens.map((g, i) => (
+                    <button key={g.src} onClick={() => setLb(i)} className="w-[100px] text-left group" data-testid={`app-detail-gallery-${i}`}>
+                      <div className={`rounded-xl overflow-hidden border border-cyan-400/30 group-hover:border-cyan-400 transition-colors ${g === app.landscape ? "aspect-[3/2]" : "aspect-[0.6]"}`}>
                         <img src={g.src} alt={g.label} className="w-full h-full object-cover" />
                       </div>
-                      <figcaption className="mono text-[9px] text-slate-400 text-center mt-2 uppercase tracking-wider">{g.label}</figcaption>
-                    </figure>
+                      <p className="mono text-[9px] text-slate-400 text-center mt-2 uppercase tracking-wider">{g.label}</p>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -93,12 +101,12 @@ export default function AppDetail() {
           <div className="mt-20" data-testid="app-detail-landscape">
             <p className="mono-label mb-3">Full studio view</p>
             <h2 className="display text-2xl sm:text-3xl font-black mb-8">{app.landscape.label}</h2>
-            <div className="relative">
+            <button onClick={() => setLb(screens.length - 1)} className="relative block w-full cursor-zoom-in" data-testid="app-detail-landscape-open">
               <div className="absolute -inset-6 blur-3xl opacity-30" style={{ background: app.accent }} />
               <div className="jn-phone relative aspect-[3/2] rounded-[20px]">
                 <img src={app.landscape.src} alt={app.landscape.label} className="absolute inset-0 w-full h-full object-cover" />
               </div>
-            </div>
+            </button>
           </div>
         )}
 
@@ -112,6 +120,7 @@ export default function AppDetail() {
           </div>
         </div>
       </div>
+      {lb !== null && <Lightbox images={screens} index={lb} onClose={() => setLb(null)} onChange={setLb} />}
     </div>
   );
 }

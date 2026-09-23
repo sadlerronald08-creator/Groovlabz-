@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { ShoppingBag, Check } from "lucide-react";
 import api from "../lib/api";
 import { useCart } from "../lib/cart";
@@ -54,20 +55,20 @@ export default function Shop() {
               className="metal-border rounded-2xl overflow-hidden hover:border-cyan-400/60 transition-all group"
               data-testid={`shop-product-${p.id}`}
             >
-              <div className={`relative aspect-[4/3] overflow-hidden ${p.fit === "contain" ? "jn-galaxy" : "bg-slate-900"}`} style={{ "--jn-galaxy-img": "url(/jamnow/galaxy-bg.jpg)" }}>
+              <Link to={`/shop/${p.id}`} className="relative aspect-square overflow-hidden bg-slate-900 block" data-testid={`shop-product-link-${p.id}`}>
                 <img
                   src={p.image}
                   alt={p.name}
-                  className={`w-full h-full group-hover:scale-105 transition-transform duration-500 ${p.fit === "contain" ? "object-contain p-3 drop-shadow-[0_0_20px_rgba(45,164,255,0.5)]" : "object-cover"}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <span className="absolute top-3 left-3 mono text-[10px] uppercase tracking-widest px-2 py-1 rounded-full bg-cyan-400/90 text-slate-950 font-bold">
                   {p.tag}
                 </span>
-              </div>
+              </Link>
               <div className="p-5">
                 <p className="mono-label mb-2">{p.category}</p>
                 <h3 className="display text-xl font-extrabold mb-2">
-                  {p.name}
+                  <Link to={`/shop/${p.id}`} className="hover:text-cyan-300 transition-colors">{p.name}</Link>
                 </h3>
                 <p className="text-sm text-slate-400 mb-4 line-clamp-2">
                   {p.description}

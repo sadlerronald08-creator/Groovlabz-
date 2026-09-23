@@ -30,57 +30,56 @@ export default function GuitarStage() {
             <span className="text-cyan-300 text-glow-cyan">Real, playable, yours.</span>
           </h2>
           <p className="text-slate-300 mt-4">
-            Two limited signature guitars, built to the exact artwork you see inside GroovSesh.
-            Set up and ready to plug into your GroovPuck.
+            Three signature guitars built to the artwork inside GroovSesh. The Lightning V ships with
+            GroovPuck Bluetooth built in — play wirelessly into GroovBox or any GroovLabz amp.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-3 gap-6">
           {guitars.map((g) => (
             <article
               key={g.id}
-              className="group relative rounded-3xl metal-border overflow-hidden hover:border-cyan-400/70 transition-all"
+              className="group relative rounded-3xl metal-border overflow-hidden hover:border-cyan-400/70 transition-all flex flex-col"
               data-testid={`stage-guitar-${g.id}`}
             >
-              <div className="grid grid-cols-[42%_1fr] gap-4 items-stretch">
-                <div className="relative min-h-[380px] flex items-center justify-center p-4">
-                  <div className="absolute inset-6 rounded-full blur-3xl opacity-40 bg-gradient-to-b from-[#2DA4FF] via-[#C978FF] to-transparent" />
-                  <img
-                    src={g.image}
-                    alt={g.name}
-                    className="relative h-[360px] w-auto object-contain drop-shadow-[0_0_30px_rgba(45,164,255,0.6)] transition-transform duration-700 group-hover:scale-105 group-hover:-rotate-2"
-                  />
-                </div>
-                <div className="py-8 pr-8 flex flex-col">
-                  <span className="mono text-[10px] uppercase tracking-widest px-2 py-1 rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/20 self-start mb-4">
-                    {g.tag} · Limited
+              <Link to={`/shop/${g.id}`} className="relative block aspect-[4/5] overflow-hidden" data-testid={`stage-guitar-link-${g.id}`}>
+                <img
+                  src={g.image}
+                  alt={g.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <span className="absolute top-4 left-4 mono text-[10px] uppercase tracking-widest px-2 py-1 rounded-full bg-cyan-400/90 text-slate-950 font-bold">
+                  {g.tag}
+                </span>
+              </Link>
+              <div className="p-6 flex flex-col flex-1">
+                <h3 className="display text-xl sm:text-2xl font-black mb-2">
+                  <Link to={`/shop/${g.id}`} className="hover:text-cyan-300 transition-colors">{g.name}</Link>
+                </h3>
+                <p className="text-sm text-slate-400 leading-relaxed mb-4 line-clamp-3">{g.description}</p>
+                <ul className="space-y-1.5 mb-6">
+                  {g.specs.slice(0, 3).map((s) => (
+                    <li key={s} className="flex items-start gap-2 text-xs text-slate-300">
+                      <Check className="w-3 h-3 text-cyan-300 mt-0.5 flex-shrink-0" />
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-auto flex items-center justify-between gap-4">
+                  <span className="display text-3xl font-black text-cyan-300" data-testid={`stage-guitar-price-${g.id}`}>
+                    ${g.price.toFixed(2)}
                   </span>
-                  <h3 className="display text-2xl sm:text-3xl font-black mb-2">{g.name}</h3>
-                  <p className="text-sm text-slate-400 leading-relaxed mb-5">{g.description}</p>
-                  <ul className="space-y-1.5 mb-6">
-                    {g.specs.map((s) => (
-                      <li key={s} className="flex items-start gap-2 text-xs text-slate-300">
-                        <Check className="w-3 h-3 text-cyan-300 mt-0.5 flex-shrink-0" />
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-auto flex items-center justify-between gap-4">
-                    <span className="display text-3xl font-black text-cyan-300" data-testid={`stage-guitar-price-${g.id}`}>
-                      ${g.price.toFixed(2)}
-                    </span>
-                    <button
-                      onClick={() => {
-                        add(g);
-                        toast.success(`${g.name} added to cart`);
-                      }}
-                      className="inline-flex items-center gap-2 h-11 px-5 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-sm glow-cyan transition-all hover:scale-[1.03]"
-                      data-testid={`stage-add-to-cart-${g.id}`}
-                    >
-                      <ShoppingBag className="w-4 h-4" />
-                      Add to cart
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => {
+                      add(g);
+                      toast.success(`${g.name} added to cart`);
+                    }}
+                    className="inline-flex items-center gap-2 h-11 px-5 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold text-sm glow-cyan transition-all hover:scale-[1.03]"
+                    data-testid={`stage-add-to-cart-${g.id}`}
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    Add
+                  </button>
                 </div>
               </div>
             </article>

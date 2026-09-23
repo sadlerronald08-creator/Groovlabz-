@@ -50,26 +50,135 @@ api_router = APIRouter(prefix="/api")
 # ---- Product catalog (server-side source of truth) --------
 SHOP_PRODUCTS = [
     {
-        "id": "galaxy-v",
-        "name": "GroovLabz Galaxy V",
-        "price": 249.00,
-        "tag": "Signature",
-        "image": "/shop/galaxy-v.jpg",
-        "fit": "contain",
-        "description": "Playable Flying‑V electric guitar in a hand‑finished nebula galaxy wrap with neon‑green pickup rings, knobs and jack ring. GROOVLABZ headstock, ∞ inlay at the 12th fret.",
-        "specs": ["Flying‑V body, galaxy nebula finish", "Dual humbuckers, glow‑green rings", "24‑fret rosewood neck, ∞ inlay", "Ships set up & ready to play"],
+        "id": "lightning-v",
+        "name": "GroovLabz Lightning V",
+        "price": 399.00,
+        "tag": "Bluetooth Built‑In",
+        "image": "/shop/lightning-v.jpg",
+        "gallery": [
+            {"src": "/shop/lightning-v.jpg", "label": "Full view"},
+            {"src": "/shop/lightning-v-headstock.jpg", "label": "Headstock"},
+            {"src": "/shop/lightning-v-pickups.jpg", "label": "Pickups & bridge"},
+            {"src": "/shop/lightning-v-finish.jpg", "label": "Lightning finish"},
+        ],
+        "description": "The GroovSesh Flying‑V, for real — with GroovPuck Bluetooth built into the body. Pearl‑white finish struck with electric‑blue lightning, blue binding, chrome hardware and the GROOVLABZ headstock. Plays wirelessly into GroovBox, GroovSesh and any GroovLabz amp.",
+        "specs": ["Built‑in Bluetooth 5.3 transmitter, <4ms latency", "Flying‑V body, pearl white with blue lightning finish", "Dual chrome humbuckers, 3‑way selector", "Block‑inlay rosewood neck, 22 frets", "12‑hour battery, USB‑C charging", "Ships set up & ready to play"],
+        "sheet": {"Body": "Mahogany Flying‑V", "Neck": "Set mahogany, rosewood board", "Scale": "24.75\"", "Pickups": "2× GroovLabz Alnico humbuckers", "Wireless": "Bluetooth 5.3 · 12 h battery", "Hardware": "Chrome tune‑o‑matic, locking tuners", "Weight": "3.2 kg", "Includes": "Gig bag, USB‑C cable, strap"},
         "category": "Signature Guitars",
     },
     {
-        "id": "lightning-v",
-        "name": "GroovLabz Lightning V",
-        "price": 249.00,
+        "id": "galaxy-v",
+        "name": "GroovLabz Galaxy V",
+        "price": 299.00,
         "tag": "Signature",
-        "image": "/jamnow/flying-v.png",
-        "fit": "contain",
-        "description": "The GroovSesh‑interface Flying‑V, for real. Pearl‑white body struck with electric‑blue lightning, blue binding, chrome hardware and the GROOVLABZ headstock.",
-        "specs": ["Flying‑V body, blue lightning finish", "Dual chrome humbuckers", "Block‑inlay rosewood neck", "Pairs with GroovPuck Bluetooth adapter"],
+        "image": "/shop/galaxy-v.jpg",
+        "gallery": [
+            {"src": "/shop/galaxy-v.jpg", "label": "Full view"},
+            {"src": "/shop/galaxy-v-headstock.jpg", "label": "Headstock"},
+            {"src": "/shop/galaxy-v-pickups.jpg", "label": "Pickups & knobs"},
+            {"src": "/shop/galaxy-v-finish.jpg", "label": "Nebula finish"},
+        ],
+        "description": "Playable Flying‑V electric guitar in a hand‑finished nebula galaxy wrap with neon‑green pickup rings, knobs and jack ring. GROOVLABZ headstock, ∞ inlay at the 12th fret.",
+        "specs": ["Flying‑V body, galaxy nebula finish", "Dual humbuckers, glow‑green rings", "Rosewood neck, ∞ inlay", "Ships set up & ready to play"],
+        "sheet": {"Body": "Basswood Flying‑V", "Neck": "Bolt‑on maple, rosewood board", "Scale": "25.5\"", "Pickups": "2× GroovLabz ceramic humbuckers", "Hardware": "Black tune‑o‑matic, neon‑green rings", "Weight": "3.1 kg", "Includes": "Gig bag, strap"},
         "category": "Signature Guitars",
+    },
+    {
+        "id": "storm-v",
+        "name": "GroovLabz Storm V",
+        "price": 299.00,
+        "tag": "Signature",
+        "image": "/shop/storm-v.jpg",
+        "gallery": [
+            {"src": "/shop/storm-v.jpg", "label": "Full view"},
+            {"src": "/shop/storm-v-headstock.jpg", "label": "Headstock"},
+            {"src": "/shop/storm-v-pickups.jpg", "label": "Pickups & bridge"},
+            {"src": "/shop/storm-v-finish.jpg", "label": "Storm finish"},
+        ],
+        "description": "The black one. Gloss‑black Flying‑V struck with blue‑violet lightning, electric‑blue binding and the ∞ inlay — the guitar you see on the GroovSesh home screen.",
+        "specs": ["Flying‑V body, gloss black with blue‑violet lightning", "Dual chrome humbuckers", "Rosewood neck, ∞ inlay at the 12th fret", "Blue binding & GROOVLABZ headstock"],
+        "sheet": {"Body": "Mahogany Flying‑V", "Neck": "Set mahogany, rosewood board", "Scale": "24.75\"", "Pickups": "2× GroovLabz Alnico humbuckers", "Hardware": "Chrome tune‑o‑matic, blue binding", "Weight": "3.2 kg", "Includes": "Gig bag, strap"},
+        "category": "Signature Guitars",
+    },
+    {
+        "id": "groovmic-bt",
+        "name": "GroovMic Bluetooth Vocal Microphone",
+        "price": 129.00,
+        "tag": "New",
+        "image": "/shop/groovmic-bt.jpg",
+        "description": "Handheld wireless vocal mic that pairs straight into GroovBox, GroovSesh and GroovLabz amps. Cardioid capsule, LED status ring and a charging dock.",
+        "specs": ["Bluetooth 5.3, <4ms latency to GroovBox", "Cardioid dynamic capsule", "10‑hour battery + charging dock", "Pairs with any GroovLabz amp"],
+        "category": "Bluetooth Hardware",
+    },
+    {
+        "id": "groovwah",
+        "name": "GroovWah Expression Pedal",
+        "price": 89.00,
+        "tag": "New",
+        "image": "/shop/groovwah.jpg",
+        "description": "Rugged wah pedal with a true‑bypass sweep and Bluetooth expression control for GroovBox effects.",
+        "specs": ["Classic vocal wah sweep", "Bluetooth expression → GroovBox", "True bypass, blue LED", "Steel chassis, rubber treadle grip"],
+        "category": "Pedals",
+    },
+    {
+        "id": "groovamp-12",
+        "name": "GroovAmp 12 Combo (12 W)",
+        "price": 219.00,
+        "tag": "Amps",
+        "image": "/shop/groovamp-12.jpg",
+        "description": "12‑watt combo with Bluetooth input for GroovBox tones, 8\" speaker and a brushed‑steel panel. Loud enough for the rehearsal room.",
+        "specs": ["12 W, 8\" GroovLabz speaker", "Bluetooth audio in from GroovBox & GroovMic", "Gain / Bass / Mid / Treble / Volume", "Headphone out, aux in"],
+        "category": "Amps",
+    },
+    {
+        "id": "groovamp-10",
+        "name": "GroovAmp 10 Practice Amp (10 W)",
+        "price": 149.00,
+        "tag": "Amps",
+        "image": "/shop/groovamp-10.jpg",
+        "description": "Compact 10‑watt practice amp with Bluetooth, built‑in tuner and a bedroom‑friendly power scaling switch.",
+        "specs": ["10 W, 6.5\" speaker", "Bluetooth in, power scaling 10 / 1 W", "Built‑in tuner", "Headphone out"],
+        "category": "Amps",
+    },
+    {
+        "id": "groovamp-7",
+        "name": "GroovAmp Go Portable (7 W)",
+        "price": 99.00,
+        "tag": "Portable",
+        "image": "/shop/groovamp-7.jpg",
+        "description": "Battery‑powered 7‑watt amp with a leather strap handle. Busk, jam in the park, or record straight into GroovSesh over Bluetooth.",
+        "specs": ["7 W, 12‑hour rechargeable battery", "Bluetooth in / out", "Leather strap handle", "USB‑C charging"],
+        "category": "Amps",
+    },
+    {
+        "id": "strings-green",
+        "name": "GroovLabz Neon Strings — Green (.010–.046)",
+        "price": 14.99,
+        "tag": "Strings",
+        "image": "/shop/strings-green.jpg",
+        "description": "Coated nickel electric strings in vivid neon green. Glow under stage UV, resist corrosion, feel slick.",
+        "specs": ["6‑string set .010–.046", "Neon green polymer coating", "UV‑reactive", "Made in USA"],
+        "category": "Strings",
+    },
+    {
+        "id": "strings-purple",
+        "name": "GroovLabz Neon Strings — Purple (.010–.046)",
+        "price": 14.99,
+        "tag": "Strings",
+        "image": "/shop/strings-purple.jpg",
+        "description": "Coated nickel electric strings in vivid neon purple. Glow under stage UV, resist corrosion, feel slick.",
+        "specs": ["6‑string set .010–.046", "Neon purple polymer coating", "UV‑reactive", "Made in USA"],
+        "category": "Strings",
+    },
+    {
+        "id": "strings-blue",
+        "name": "GroovLabz Neon Strings — Blue (.010–.046)",
+        "price": 14.99,
+        "tag": "Strings",
+        "image": "/shop/strings-blue.jpg",
+        "description": "Coated nickel electric strings in electric neon blue. Glow under stage UV, resist corrosion, feel slick.",
+        "specs": ["6‑string set .010–.046", "Neon blue polymer coating", "UV‑reactive", "Made in USA"],
+        "category": "Strings",
     },
     {
         "id": "groovpuck-bt",
@@ -424,6 +533,7 @@ async def create_checkout(req: CheckoutRequest, request: Request):
     await db.payment_transactions.insert_one({
         "session_id": session.id,
         "user_id": user_id,
+        "origin": origin,
         "items": [it.model_dump() for it in req.items],
         "amount": total,
         "currency": "usd",
@@ -433,6 +543,44 @@ async def create_checkout(req: CheckoutRequest, request: Request):
         "updated_at": datetime.now(timezone.utc).isoformat(),
     })
     return {"checkout_url": session.url, "session_id": session.id}
+
+
+async def send_receipt(session_id: str, buyer_email: Optional[str]):
+    record = await db.payment_transactions.find_one({"session_id": session_id})
+    if not record or record.get("receipt_sent"):
+        return
+    to = buyer_email
+    if not to and record.get("user_id"):
+        u = await db.users.find_one({"id": record["user_id"]})
+        to = u["email"] if u else None
+    if not to:
+        return
+    origin = record.get("origin") or ""
+    rows = ""
+    for it in record.get("items", []):
+        p = next((x for x in SHOP_PRODUCTS if x["id"] == it["product_id"]), None)
+        if not p:
+            continue
+        rows += (f'<tr><td style="padding:8px 0;border-bottom:1px solid #23283B">{escape(p["name"])} × {it["quantity"]}</td>'
+                 f'<td style="padding:8px 0;border-bottom:1px solid #23283B;text-align:right">${p["price"] * it["quantity"]:.2f}</td></tr>')
+    account_link = (f'<p style="margin:20px 0"><a href="{origin}/account" style="background:#00F0FF;color:#0B0C10;padding:12px 20px;'
+                    f'border-radius:999px;text-decoration:none;font-weight:bold">View your orders</a></p>') if origin.startswith("https://") else ""
+    html = (
+        '<table role="presentation" width="100%" style="font-family:Arial,sans-serif;background:#0B0C10;color:#F1F5F9">'
+        '<tr><td style="padding:28px">'
+        '<p style="color:#00F0FF;letter-spacing:3px;font-size:11px;margin:0 0 6px 0">GROOVLABZ</p>'
+        '<h2 style="margin:0 0 16px 0">Thanks for your order!</h2>'
+        f'<p style="color:#94A3B8">Order reference: {escape(session_id[-12:])}</p>'
+        f'<table width="100%" style="border-collapse:collapse;margin:16px 0">{rows}'
+        f'<tr><td style="padding:12px 0;font-weight:bold">Total</td><td style="padding:12px 0;text-align:right;font-weight:bold;color:#00F0FF">${record.get("amount", 0):.2f}</td></tr></table>'
+        f'{account_link}'
+        '<p style="font-size:12px;color:#94A3B8">We will email tracking once your gear ships. We never ask for passwords or card details by email.</p>'
+        '</td></tr></table>'
+    )
+    subject = "Your GroovLabz order receipt"
+    await send_email(to=to, subject=subject, html=html)
+    await send_email(to=OWNER_EMAIL, subject=f"[GroovLabz Sale] {to} — ${record.get('amount', 0):.2f}", html=html)
+    await db.payment_transactions.update_one({"session_id": session_id}, {"$set": {"receipt_sent": True, "buyer_email": to}})
 
 
 @api_router.get("/payments/status/{session_id}")
@@ -453,6 +601,8 @@ async def payment_status(session_id: str):
                     }},
                 )
                 record = await db.payment_transactions.find_one({"session_id": session_id}, {"_id": 0})
+                cd = getattr(s, "customer_details", None)
+                await send_receipt(session_id, getattr(cd, "email", None) if cd else None)
         except Exception as e:
             logger.warning(f"Stripe status lookup failed: {e}")
     return {
@@ -480,6 +630,7 @@ async def stripe_webhook(request: Request):
                       "stripe_payment_intent_id": obj.get("payment_intent"),
                       "updated_at": datetime.now(timezone.utc).isoformat()}},
         )
+        await send_receipt(obj["id"], (obj.get("customer_details") or {}).get("email"))
     return {"status": "ok"}
 
 

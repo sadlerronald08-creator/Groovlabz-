@@ -14,6 +14,7 @@ import Apps from "./pages/Apps";
 import AppDetail from "./pages/AppDetail";
 import Instruments from "./pages/Instruments";
 import Shop from "./pages/Shop";
+import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
 import Contact from "./pages/Contact";
@@ -35,6 +36,7 @@ function App() {
               <Route path="/apps/:id" element={<AppDetail />} />
               <Route path="/instruments" element={<Instruments />} />
               <Route path="/shop" element={<Shop />} />
+              <Route path="/shop/:id" element={<ProductDetail />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/login" element={<Login mode="login" />} />
