@@ -58,7 +58,7 @@ export function GalaxyBackground({ children }: { children: React.ReactNode }) {
 
 /** GroovSesh brand lockup for the login / splash. */
 const BRAND_LOGO = require("../../assets/images/groovsesh-logo.png");
-const LOGO_AR = 416 / 100; // width / height of the exported logo asset
+const LOGO_AR = 425 / 119; // width / height of the exported logo asset
 
 export function InfinityLogo({ height = 54 }: { height?: number }) {
   return (

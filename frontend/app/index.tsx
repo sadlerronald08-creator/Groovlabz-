@@ -151,7 +151,7 @@ const useStyles = makeStyles((colors) => ({
   quickJamsText: { fontFamily: fonts.displayBold, fontSize: 11, color: colors.onBrandSecondary, letterSpacing: 1 },
 
   stage: { flex: 1, position: "relative", justifyContent: "center" },
-  guitar: { position: "absolute", left: -70, top: 0, bottom: 0, width: 260, height: "100%" },
+  guitar: { position: "absolute", left: 2, top: 4, bottom: 4, width: 168, height: "94%", alignSelf: "center" },
   nodes: { marginLeft: 168, marginRight: 16, gap: 10 },
   nodeRow: { flexDirection: "row", alignItems: "center", gap: 12 },
   nodeCircle: { width: 50, height: 50, borderRadius: 25, alignItems: "center", justifyContent: "center", borderWidth: 1.5 },
