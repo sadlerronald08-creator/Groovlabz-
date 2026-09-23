@@ -1,11 +1,10 @@
-import { useState } from "react";
-import { Check, Download } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Check } from "lucide-react";
 import { APPS } from "../data/apps";
-import DownloadModal from "../components/DownloadModal";
+import AppScreen from "../components/AppScreen";
+import StoreButtons from "../components/StoreButtons";
 
 export default function Apps() {
-  const [selectedApp, setSelectedApp] = useState(null);
-
   return (
     <div className="pt-24 pb-16" data-testid="apps-page">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,22 +14,18 @@ export default function Apps() {
             Five companion apps, one <span className="text-cyan-300">creative signal chain.</span>
           </h1>
           <p className="text-slate-300 text-lg">
-            Every app talks to every other app. Record in GroovSesh, tune with
-            GroovTune, pull a chord chart from GroovChords — no wires, no
-            friction, no context switch.
+            Idea → tone → recording → cleanup → mixing → practice → reference. Capture in GroovSesh,
+            shape tone in GroovBox, strip stems in GroovMash, practice with GroovTrackz and read
+            charts in GroovCharts — one account, no friction.
           </p>
         </div>
 
-        <div className="space-y-16">
+        <div className="space-y-24">
           {APPS.map((app, idx) => {
             const Icon = app.icon;
             const flipped = idx % 2 === 1;
             return (
-              <div
-                key={app.id}
-                className="grid lg:grid-cols-2 gap-10 items-center"
-                data-testid={`app-detail-${app.id}`}
-              >
+              <div key={app.id} className="grid lg:grid-cols-2 gap-12 items-center" data-testid={`app-detail-${app.id}`}>
                 <div className={flipped ? "lg:order-2" : ""}>
                   <div className="flex items-center gap-3 mb-4">
                     <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${app.color} flex items-center justify-center`}>
@@ -40,15 +35,9 @@ export default function Apps() {
                       {app.badge}
                     </span>
                   </div>
-                  <h2 className="display text-3xl sm:text-4xl font-black mb-3">
-                    {app.name}
-                  </h2>
-                  <p className="text-cyan-300 mono text-sm uppercase tracking-widest mb-4">
-                    {app.tagline}
-                  </p>
-                  <p className="text-slate-300 leading-relaxed mb-6">
-                    {app.description}
-                  </p>
+                  <h2 className="display text-3xl sm:text-4xl font-black mb-3">{app.name}</h2>
+                  <p className="text-cyan-300 mono text-sm uppercase tracking-widest mb-4">{app.tagline}</p>
+                  <p className="text-slate-300 leading-relaxed mb-6">{app.description}</p>
                   <ul className="space-y-3 mb-8">
                     {app.features.map((f) => (
                       <li key={f} className="flex items-start gap-3">
@@ -59,34 +48,26 @@ export default function Apps() {
                       </li>
                     ))}
                   </ul>
-                  <button
-                    onClick={() => setSelectedApp(app)}
-                    className="inline-flex items-center gap-2 h-12 px-6 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-bold glow-cyan transition-all hover:scale-[1.03]"
+                  <StoreButtons app={app} size="sm" />
+                  <Link
+                    to={`/apps/${app.id}`}
+                    className="mt-5 inline-flex items-center gap-2 mono-label hover:text-cyan-200"
                     data-testid={`download-${app.id}-btn`}
                   >
-                    <Download className="w-4 h-4" />
-                    Download {app.name}
-                  </button>
+                    Open {app.name} page <ArrowRight className="w-3 h-3" />
+                  </Link>
                 </div>
                 <div className={flipped ? "lg:order-1" : ""}>
-                  <div className="relative">
-                    <div className="absolute -inset-3 bg-gradient-to-br from-cyan-500/20 to-blue-600/10 blur-2xl" />
-                    <div className="relative metal-border rounded-2xl p-1">
-                      <img
-                        src={app.image}
-                        alt={app.name}
-                        className="w-full h-[360px] object-cover rounded-xl"
-                      />
-                    </div>
-                  </div>
+                  <Link to={`/apps/${app.id}`} className="jn-card group block relative max-w-[330px] mx-auto" data-testid={`app-screen-link-${app.id}`}>
+                    <div className="absolute -inset-6 blur-3xl opacity-30 group-hover:opacity-50 transition-opacity" style={{ background: app.screen.accent }} />
+                    <AppScreen app={app} fluid className="relative" />
+                  </Link>
                 </div>
               </div>
             );
           })}
         </div>
       </div>
-
-      <DownloadModal open={!!selectedApp} onClose={() => setSelectedApp(null)} app={selectedApp} />
     </div>
   );
 }

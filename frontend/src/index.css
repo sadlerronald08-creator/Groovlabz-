@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* GroovLabz — Dark recording studio aesthetic */
-@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
 :root {
     --gl-bg: #0B0C10;
@@ -226,6 +226,50 @@
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(24px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Jam Now Studio app-interface mockups ---- */
+.jn-display {
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 0.04em;
+}
+.jn-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+}
+.jn-wordmark {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(180deg, #FFFFFF 0%, #BFE9FF 38%, #2DA4FF 62%, #0B3D6B 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 6px rgba(45, 164, 255, 0.85));
+}
+.jn-phone {
+    position: relative;
+    overflow: hidden;
+    border-radius: 28px;
+    background: #02050B;
+    border: 2px solid rgba(45, 164, 255, 0.45);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.9), 0 0 30px rgba(45, 164, 255, 0.3), 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.jn-card:hover .jn-phone {
+    border-color: rgba(84, 186, 255, 0.95);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.9), 0 0 44px rgba(45, 164, 255, 0.6), 0 30px 60px rgba(0, 0, 0, 0.6);
+}
+.jn-galaxy {
+    background: linear-gradient(180deg, rgba(2, 5, 11, 0.55), rgba(2, 5, 11, 0.35) 40%, rgba(2, 5, 11, 0.92)), var(--jn-galaxy-img) center / cover;
+}
+.jn-spin {
+    animation: jnSpin 6s linear infinite;
+}
+@keyframes jnSpin {
+    to { transform: rotate(360deg); }
 }
 
 /* Custom scrollbar */

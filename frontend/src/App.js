@@ -11,6 +11,7 @@ import CartDrawer from "./components/CartDrawer";
 
 import Home from "./pages/Home";
 import Apps from "./pages/Apps";
+import AppDetail from "./pages/AppDetail";
 import Instruments from "./pages/Instruments";
 import Shop from "./pages/Shop";
 import Login from "./pages/Login";
@@ -31,6 +32,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/apps" element={<Apps />} />
+              <Route path="/apps/:id" element={<AppDetail />} />
               <Route path="/instruments" element={<Instruments />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/about" element={<About />} />
