@@ -101,7 +101,28 @@ hardware) + Account + About + Contact + legal pages.
   `/admin/store-links` (link on Account for role=admin).
 - Tests: iteration_7 backend 10/10, frontend all pass.
 
+## Implemented (2026-06) — Google sign-in, AI chat, avatars, admin media, ∞
+- Emergent-managed Google auth: `POST /api/auth/google/session`, `user_sessions` (session_token fallback in
+  `get_current_user`), `AuthCallback` on `#session_id=`, "Continue with Google" on Login/Register. See `/app/auth_testing.md`.
+- "Ask GroovLabz" widget (GPT‑5.4 mini via emergentintegrations, SSE `POST /api/ai/chat`, history per `gl_ai_session`),
+  modes support/gear/riff, system prompt built from catalog + apps + origin story.
+- Avatars: `POST /api/uploads/avatar` → object storage; navbar + reviews (`author_picture`).
+- Admin media overrides (`/admin/media`): `PUT/DELETE /api/admin/media/{product|app}/{id}`, merged into product
+  endpoints; `lib/media.js` + `AppScreen` for app artwork.
+- About page rewritten with real origin story ("From a trip to a riff"); Nashville/2M+ fiction removed; ∞ in hero.
+- Tests: iteration_8 backend 12/12, frontend all pass.
+
+## Implemented (2026-06) — GroovSesh mobile code work (in /app/mobile/groovsesh)
+- Cloned GroovSesh Expo app into this repo; see `/app/mobile/groovsesh/memory/WEBSITE_CHAT_CHANGES.md`.
+- Dead ends → functional Looper / Songbook / Setlists; duplicate "Add to Studio" → Import Audio; real stems export
+  to GroovMash (backend zip endpoint); brand fixes (GroovTracks→GroovMash, groovlabs.com); modelled percussion clicks;
+  app.json/eas.json/STORE_LISTING.md store prep. Verified: tsc 0 errors, stems unit tests 2/2. No device run.
+
 ## Backlog (P0 / P1 / P2)
+- **P0** Push `/app/mobile/groovsesh` to GitHub ("Save to GitHub") and build/smoke-test in the mobile chat (EAS)
+- **P1** Hum-to-Drums in GroovSesh + GroovMash; Instruments page: realistic sampled instrument sounds (user request)
+- **P1** Phase B: Key Finder (mic → key detection, Web Audio chroma) + Hum‑to‑Drums (onset/tempo → drum pattern) on Instruments page
+- **P1** Support mailbox: user to create groovlabzsupport@gmail.com; then set as OWNER_EMAIL / contact address
 - **P1** User pastes real store URLs in /admin/store-links once apps are approved
 - **P1** Publish + connect groovlabs.com (Cloudflare, DNS-only) — platform UI
 

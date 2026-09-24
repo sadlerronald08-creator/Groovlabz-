@@ -4,6 +4,7 @@ import { LogOut, Zap, ShoppingBag, Activity } from "lucide-react";
 import api from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { APPS } from "../data/apps";
+import AvatarUpload from "../components/AvatarUpload";
 
 export default function Account() {
   const { user, ready, logout } = useAuth();

@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "GroovSesh",
+    "slug": "groovsesh",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "groovsesh",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.emergent.jamnowstudio.fr57we",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "GroovSesh uses the microphone to record your takes, loops and jams.",
+        "NSPhotoLibraryUsageDescription": "GroovSesh can import audio and save exports you choose to your library.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      },
+      "buildNumber": "1"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#02050B"
+      },
+      "package": "com.emergent.jamnowstudio.fr57we",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "versionCode": 1
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-image.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#02050B"
+        }
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-status-bar",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "GroovSesh uses the microphone to record your takes, loops and jams."
+        }
+      ],
+      "expo-sharing"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "description": "GroovSesh \u2014 one-tap music capture. Record ideas in seconds, stack takes into sessions, and hand stems off to GroovMash. From a trip to a riff.",
+    "primaryColor": "#2DA4FF"
+  }
+}

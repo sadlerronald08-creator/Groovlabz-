@@ -1,0 +1,171 @@
+{
+  "app_name": "Groove Sesh",
+  "personality": "7 Dark-First Utility DARK",
+  "personality_one_liner": "A high-performance, cyberpunk-infused DAW where glowing neon interactions contrast against a deep space void.",
+  "color": {
+    "surface": "#0D0D12",
+    "onSurface": "#FFFFFF",
+    "surfaceSecondary": "#1A1A24",
+    "onSurfaceSecondary": "#E2E8F0",
+    "surfaceTertiary": "#262636",
+    "onSurfaceTertiary": "#CBD5E1",
+    "surfaceInverse": "#FFFFFF",
+    "onSurfaceInverse": "#0D0D12",
+    "brand": "#A855F7",
+    "brandPrimary": "#D946EF",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#06B6D4",
+    "onBrandSecondary": "#000000",
+    "brandTertiary": "#8B5CF6",
+    "onBrandTertiary": "#FFFFFF",
+    "success": "#10B981",
+    "onSuccess": "#FFFFFF",
+    "warning": "#F59E0B",
+    "onWarning": "#FFFFFF",
+    "error": "#EF4444",
+    "onError": "#FFFFFF",
+    "info": "#3B82F6",
+    "onInfo": "#FFFFFF",
+    "border": "#2E324A",
+    "borderStrong": "#D946EF",
+    "divider": "#1F2233",
+    "muted": "#64748B",
+    "onBrand": "#FFFFFF"
+  },
+  "typography": {
+    "displayFontFamily": "Rajdhani",
+    "textFontFamily": "IBM Plex Sans",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Dense information architecture with intentional padding. Use md/lg for structural separation and xs/sm for grouping DAW controls.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "0",
+  "navigation": "stack_only",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": false,
+    "do's": [
+      "Use solid dark surfaces and neon glowing borders to define hierarchy, avoiding heavy blur that reduces UI responsiveness during live recording."
+    ],
+    "dont's": [
+      "No heavy iOS-style frosted glass backgrounds over the DAW timelines. Performance and clarity are paramount."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "haptics": {
+    "events": {
+      "jam_now_press": "heavy",
+      "record_toggle": "medium",
+      "fret_menu_tap": "light",
+      "mute_solo_toggle": "selection",
+      "transport_controls": "medium",
+      "trim_handle_drag_commit": "light"
+    }
+  },
+  "screens": [
+    {
+      "name": "Home",
+      "purpose": "Gateway screen featuring the signature Flying-V neon guitar neck navigation.",
+      "states": {
+        "loading": "Centered infinity logo pulsing with neon magenta glow.",
+        "empty": "N/A - Navigation hub",
+        "error": "Standard error overlay with retry button."
+      },
+      "layout": "Screen background is dark `surface` with a subtle galaxy/starfield image layered under a heavy dark gradient scrim. Absolute positioned Infinity logo top-center and Groove Labs watermark bottom-center. Center piece: A custom vertically tapering container (the 'neck') using CSS perspective or SVG outline. The headstock (top) houses the oversized 'JAM NOW' pill (brandPrimary). Below it, ascending frets (New Session, My Sessions, Import, Tracks, Settings) are horizontal glowing pills. Touch targets are strict minimum 44pt height, extending invisibly beyond the visual taper."
+    },
+    {
+      "name": "MultitrackSession",
+      "purpose": "Main DAW view for recording layers, arranging, and basic mixing.",
+      "states": {
+        "loading": "Skeleton of track lanes.",
+        "empty": "Illustration of a mic or plugged-in guitar with 'Add your first track' CTA.",
+        "error": "Toast with 'Failed to load session audio' + Retry."
+      },
+      "layout": "Header: Session Title and Timecode (Rajdhani) + Export button. Body: Horizontal scrolling track lanes (`surfaceSecondary` bg). Each lane features a left-side sticky control panel (Mute/Solo toggles, volume slider) and a right-side waveform block (`brandSecondary` for recorded, `error` for actively recording). Bottom: Sticky floating transport bar (Play, Record, Metronome) in `surfaceTertiary`."
+    },
+    {
+      "name": "ClipEditing",
+      "purpose": "Zoomed-in waveform view for trimming, cutting, and applying FX.",
+      "states": {
+        "loading": "Waveform skeleton.",
+        "empty": "No clip selected.",
+        "error": "Failed to load audio chunk."
+      },
+      "layout": "Large central container for waveform visualization. Left/Right drag handles for trimming. Bottom sheet panel: segmented controls for EQ, Reverb, Gain, utilizing sliders and tactile toggles (`brandSecondary` active states)."
+    },
+    {
+      "name": "MySessions",
+      "purpose": "List of saved projects and stems.",
+      "states": {
+        "loading": "List skeleton.",
+        "empty": "Neon graphic of empty tapes + 'Start your first Jam' CTA.",
+        "error": "Failed to fetch sessions."
+      },
+      "layout": "Vertical list of cards (`surfaceSecondary` with `border` styling). Each card shows Title, Date, Duration (Rajdhani), and a Play icon. Swipe actions for Delete / Share."
+    },
+    {
+      "name": "AuthAndPro",
+      "purpose": "Universal login and Pro tier paywall.",
+      "states": {
+        "loading": "Spinner over darkened background.",
+        "empty": "N/A",
+        "error": "Inline text under inputs."
+      },
+      "layout": "Cinematic dark background (`home_bg`). Central elevated card for Auth forms or Pro features list. Pro upsell emphasizes 'Lossless WAV Export' using a glowing `brandPrimary` highlight button. Standard single-column form layout for Auth."
+    }
+  ],
+  "images": {
+    "home_bg": {
+      "url": "https://images.unsplash.com/photo-1741704138635-c18fca8dd1b0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NjZ8MHwxfHNlYXJjaHwyfHxuZW9uJTIwZ2FsYXh5JTIwYWJzdHJhY3QlMjBkYXJrJTIwc3BhY2UlMjBiYWNrZ3JvdW5kfGVufDB8fHx8MTc5MDEyMjU4N3ww&ixlib=rb-4.1.0&q=85",
+      "alt": "Blue glowing galaxy particles floating in the dark"
+    },
+    "infinity_logo": {
+      "url": "https://images.pexels.com/photos/8475350/pexels-photo-8475350.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Vibrant neon infinity symbol glowing in blue and pink"
+    },
+    "studio_ambience": {
+      "url": "https://images.pexels.com/photos/18197120/pexels-photo-18197120.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "alt": "Red-lit music production studio setup"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the Dark-First Utility DARK personality. Do NOT use pure black backgrounds; use `surface` (#0D0D12) as the foundational layer.",
+    "Flying-V Neck UI: This is the core branding element. Render the neck background using SVG or perspective CSS so it visually tapers toward the top. However, the fret buttons (New Session, My Sessions, etc.) MUST have a minimum vertical touch target of 44pt, extending invisibly outside the tapered neck if necessary. The 'JAM NOW' headstock button must be positioned at the top and highly visible instantly upon load.",
+    "Waveform visuals: Active recording uses `error` (#EF4444) for its live indicator/waveform, while saved/imported tracks use `brandSecondary` (#06B6D4). This ensures immediate visual distinction of live input.",
+    "Do NOT use heavy glassmorphism on the DAW/Multitrack screen; prioritize solid performance and visual contrast (use borders/glows over blurs) per standard DAW UX.",
+    "Apply the gradient-to-dark scrim pattern (top to bottom fade) whenever rendering text over the `home_bg` or `studio_ambience` image assets.",
+    "Use Rajdhani for all timecodes, durations, session titles, and metrics. Use IBM Plex Sans strictly for UI labels, settings, and body text.",
+    "Ensure 'Groove Labs' watermark is a clickable element anchored at the bottom edge of safe area."
+  ]
+}
