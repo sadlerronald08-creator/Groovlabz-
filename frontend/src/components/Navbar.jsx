@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { useCart } from "../lib/cart";
+import { mediaUrl } from "../lib/api";
 
 const links = [
   { to: "/", label: "Home" },
@@ -87,7 +88,11 @@ export default function Navbar() {
               className="hidden sm:inline-flex items-center gap-2 px-3 h-10 rounded-full metal-border text-cyan-200 hover:border-cyan-400 transition-all"
               data-testid="nav-account-link"
             >
-              <UserCircle2 className="w-4 h-4" />
+              {user.picture ? (
+                <img src={mediaUrl(user.picture)} alt="" className="w-6 h-6 rounded-full object-cover" data-testid="nav-avatar" />
+              ) : (
+                <UserCircle2 className="w-4 h-4" />
+              )}
               <span className="text-sm font-medium">
                 {user.name?.split(" ")[0] || "Account"}
               </span>

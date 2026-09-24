@@ -32,23 +32,35 @@ export default function Account() {
     <div className="pt-24 pb-16" data-testid="account-page">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-start justify-between mb-10 flex-wrap gap-4">
-          <div>
-            <p className="mono-label mb-2">Signed in</p>
-            <h1 className="display text-3xl sm:text-4xl font-black">
-              Hey {user.name?.split(" ")[0] || "producer"} 
-              <span className="text-cyan-300"> — welcome to the console.</span>
-            </h1>
+          <div className="flex items-start gap-5">
+            <AvatarUpload />
+            <div>
+              <p className="mono-label mb-2">Signed in</p>
+              <h1 className="display text-3xl sm:text-4xl font-black">
+                Hey {user.name?.split(" ")[0] || "producer"} 
+                <span className="text-cyan-300"> — welcome to the console.</span>
+              </h1>
             <p className="text-slate-400 mt-1 text-sm">{user.email}</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {user.role === "admin" && (
-              <Link
-                to="/admin/store-links"
-                className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-400/20 text-sm font-semibold"
-                data-testid="admin-store-links-link"
-              >
-                Store links
-              </Link>
+              <>
+                <Link
+                  to="/admin/store-links"
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-400/20 text-sm font-semibold"
+                  data-testid="admin-store-links-link"
+                >
+                  Store links
+                </Link>
+                <Link
+                  to="/admin/media"
+                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-400/20 text-sm font-semibold"
+                  data-testid="admin-media-link"
+                >
+                  Photos & screens
+                </Link>
+              </>
             )}
             <button
               onClick={logout}

@@ -28,6 +28,10 @@ export default function Home() {
                 Studio · Ecosystem · Live
               </span>
             </div>
+            <div className="flex items-center gap-4 mb-4" data-testid="hero-infinity">
+              <span className="jn-infinity" aria-hidden="true">∞</span>
+              <span className="jn-label text-[11px] text-[#66CAFF]">From a trip to a riff</span>
+            </div>
             <h1 className="display text-5xl sm:text-6xl lg:text-7xl font-black leading-[0.95] tracking-tight mb-6">
               Five apps.<br />
               <span className="text-glow-cyan text-cyan-300">One frequency.</span>

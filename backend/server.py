@@ -5,6 +5,7 @@ ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
 import os
+import json
 import uuid
 import logging
 import bcrypt
@@ -21,6 +22,8 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, status, UploadFile, File
+from fastapi.responses import StreamingResponse
+from emergentintegrations.llm.chat import LlmChat, UserMessage, TextDelta, StreamDone
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, EmailStr, Field
@@ -370,7 +373,7 @@ def create_access_token(uid: str, email: str) -> str:
 
 
 async def get_current_user(request: Request) -> dict:
-    token = request.cookies.get("access_token")
+    token = request.cookies.get("access_token") or request.cookies.get("session_token")
     if not token:
         auth_header = request.headers.get("Authorization", "")
         if auth_header.startswith("Bearer "):
@@ -386,7 +389,21 @@ async def get_current_user(request: Request) -> dict:
     except pyjwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except pyjwt.InvalidTokenError:
+        pass
+    session = await db.user_sessions.find_one({"session_token": token}, {"_id": 0})
+    if not session:
         raise HTTPException(status_code=401, detail="Invalid token")
+    expires_at = session["expires_at"]
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    if expires_at < datetime.now(timezone.utc):
+        raise HTTPException(status_code=401, detail="Session expired")
+    user = await db.users.find_one({"$or": [{"id": session["user_id"]}, {"user_id": session["user_id"]}]}, {"_id": 0, "password_hash": 0})
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
 
 
 def set_auth_cookie(response: Response, token: str):
@@ -557,8 +574,12 @@ async def login(payload: UserLogin, request: Request, response: Response):
 
 
 @api_router.post("/auth/logout")
-async def logout(response: Response):
+async def logout(request: Request, response: Response):
+    token = request.cookies.get("session_token")
+    if token:
+        await db.user_sessions.delete_one({"session_token": token})
     response.delete_cookie("access_token", path="/")
+    response.delete_cookie("session_token", path="/")
     return {"status": "logged out"}
 
 
@@ -567,10 +588,220 @@ async def me(user=Depends(get_current_user)):
     return user
 
 
+EMERGENT_SESSION_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
+
+
+@api_router.post("/auth/google/session")
+async def google_session(request: Request, response: Response):
+    session_id = request.headers.get("X-Session-ID")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Missing session id")
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            r = await client.get(EMERGENT_SESSION_URL, headers={"X-Session-ID": session_id})
+    except Exception as e:
+        logger.error(f"Google session lookup failed: {e}")
+        raise HTTPException(status_code=502, detail="Google sign-in is temporarily unavailable")
+    if r.status_code != 200:
+        raise HTTPException(status_code=401, detail="Google sign-in could not be verified")
+    data = r.json()
+    email = (data.get("email") or "").lower()
+    if not email:
+        raise HTTPException(status_code=401, detail="Google account has no email")
+    now = datetime.now(timezone.utc)
+    user = await db.users.find_one({"email": email}, {"_id": 0, "password_hash": 0})
+    if user:
+        updates = {"auth_provider": user.get("auth_provider") or "google", "last_login_at": now.isoformat()}
+        if data.get("picture") and not user.get("picture"):
+            updates["picture"] = data["picture"]
+        if not user.get("name") and data.get("name"):
+            updates["name"] = data["name"]
+        await db.users.update_one({"email": email}, {"$set": updates})
+        user.update(updates)
+    else:
+        user = {
+            "id": str(uuid.uuid4()),
+            "email": email,
+            "name": data.get("name") or email.split("@")[0],
+            "picture": data.get("picture"),
+            "role": "admin" if email == os.environ.get("ADMIN_EMAIL", "admin@groovlabz.com").lower() else "user",
+            "auth_provider": "google",
+            "created_at": now.isoformat(),
+        }
+        await db.users.insert_one(dict(user))
+    session_token = data.get("session_token") or str(uuid.uuid4())
+    await db.user_sessions.update_one(
+        {"session_token": session_token},
+        {"$set": {"user_id": user["id"], "session_token": session_token,
+                  "expires_at": now + timedelta(days=7), "created_at": now}},
+        upsert=True,
+    )
+    response.set_cookie(key="session_token", value=session_token, httponly=True, secure=True,
+                        samesite="none", max_age=60 * 60 * 24 * 7, path="/")
+    token = create_access_token(user["id"], email)
+    set_auth_cookie(response, token)
+    return {**user, "token": token}
+
+
+# ---- Avatar upload -------------------------------------------
+@api_router.post("/uploads/avatar")
+async def upload_avatar(file: UploadFile = File(...), user=Depends(get_current_user)):
+    ext = ALLOWED_IMAGE_TYPES.get(file.content_type)
+    if not ext:
+        raise HTTPException(status_code=400, detail="Only JPG, PNG or WEBP images are allowed")
+    data = await file.read()
+    if len(data) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Image must be under 5 MB")
+    fid = str(uuid.uuid4())
+    try:
+        result = put_object(f"{STORAGE_APP}/avatars/{user['id']}/{fid}.{ext}", data, file.content_type)
+    except Exception as e:
+        logger.error(f"Avatar upload failed: {e}")
+        raise HTTPException(status_code=502, detail="Upload failed, please try again")
+    await db.files.insert_one({"id": fid, "user_id": user["id"], "storage_path": result["path"], "original_filename": file.filename,
+                               "content_type": file.content_type, "size": result.get("size", len(data)), "is_deleted": False,
+                               "created_at": datetime.now(timezone.utc).isoformat()})
+    url = f"/api/files/{fid}"
+    await db.users.update_one({"id": user["id"]}, {"$set": {"picture": url}})
+    await db.reviews.update_many({"user_id": user["id"]}, {"$set": {"author_picture": url}})
+    return {"picture": url}
+
+
+# ---- Admin media overrides -----------------------------------
+MEDIA_KEYS = {f"product:{p['id']}" for p in SHOP_PRODUCTS if p.get("kind") != "bundle"} | {f"app:{a}" for a in APP_IDS}
+
+
+@api_router.get("/media-overrides")
+async def media_overrides():
+    docs = await db.media_overrides.find({}, {"_id": 0}).to_list(200)
+    return {d["key"]: d["url"] for d in docs}
+
+
+@api_router.put("/admin/media/{kind}/{item_id}")
+async def set_media(kind: str, item_id: str, file: UploadFile = File(...), user=Depends(get_current_user)):
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    key = f"{kind}:{item_id}"
+    if key not in MEDIA_KEYS:
+        raise HTTPException(status_code=404, detail="Unknown media target")
+    ext = ALLOWED_IMAGE_TYPES.get(file.content_type)
+    if not ext:
+        raise HTTPException(status_code=400, detail="Only JPG, PNG or WEBP images are allowed")
+    data = await file.read()
+    if len(data) > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Image must be under 10 MB")
+    fid = str(uuid.uuid4())
+    try:
+        result = put_object(f"{STORAGE_APP}/media/{kind}/{item_id}/{fid}.{ext}", data, file.content_type)
+    except Exception as e:
+        logger.error(f"Media upload failed: {e}")
+        raise HTTPException(status_code=502, detail="Upload failed, please try again")
+    await db.files.insert_one({"id": fid, "user_id": user["id"], "storage_path": result["path"], "original_filename": file.filename,
+                               "content_type": file.content_type, "size": result.get("size", len(data)), "is_deleted": False,
+                               "created_at": datetime.now(timezone.utc).isoformat()})
+    url = f"/api/files/{fid}"
+    await db.media_overrides.update_one({"key": key}, {"$set": {"key": key, "url": url, "updated_at": datetime.now(timezone.utc).isoformat()}}, upsert=True)
+    return {"key": key, "url": url}
+
+
+@api_router.delete("/admin/media/{kind}/{item_id}")
+async def reset_media(kind: str, item_id: str, user=Depends(get_current_user)):
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin only")
+    await db.media_overrides.delete_one({"key": f"{kind}:{item_id}"})
+    return {"status": "reset"}
+
+
+async def _apply_product_overrides(products):
+    docs = await db.media_overrides.find({"key": {"$regex": "^product:"}}, {"_id": 0}).to_list(200)
+    if not docs:
+        return products
+    ov = {d["key"].split(":", 1)[1]: d["url"] for d in docs}
+    out = []
+    for p in products:
+        if p["id"] in ov:
+            p = {**p, "image": ov[p["id"]]}
+        elif p.get("kind") == "bundle" and p["includes"][0] in ov:
+            p = {**p, "image": ov[p["includes"][0]]}
+        out.append(p)
+    return out
+
+
+# ---- Ask GroovLabz (AI) --------------------------------------
+class AiChatRequest(BaseModel):
+    session_id: str = Field(min_length=8, max_length=80)
+    message: str = Field(min_length=1, max_length=2000)
+    mode: str = Field(default="support", pattern="^(support|gear|riff)$")
+
+
+def _ai_system_prompt() -> str:
+    catalog = "\n".join(f"- {p['name']} — ${p['price']:.2f} ({p['category']}): {p['description']}" for p in SHOP_PRODUCTS if p.get("kind") != "bundle")
+    return (
+        "You are 'Ask GroovLabz', the friendly in-house assistant for GroovLabz (groovlabs.com), a music-creation ecosystem of five mobile apps "
+        "plus a hardware shop. Be concise, warm and musician-to-musician. Never invent store links, prices or products not listed here. "
+        "Brand spellings: GroovLabz, GroovSesh, GroovBox, GroovMash, GroovTrackz, GroovCharts.\n\n"
+        "ORIGIN STORY: The founder imagined, during an acid trip, a recording app so simple you could use it while tripping; that became GroovSesh, "
+        "which led to four more apps and this homepage. Tagline: 'From a trip to a riff. Recording has never been easier.'\n\n"
+        "APPS: GroovSesh — one-tap capture, multitrack sessions, Quick Jams, Neural Clean, Session Reel, Collab; exports stems to GroovMash. "
+        "GroovBox — tone shaping: presets, pedalboard, amps & cabs, signal chain, tuner, looper; pairs with GroovMic and GroovAmps over Bluetooth. "
+        "GroovMash — strip stems, Neural Clean, isolate, blend, export. GroovTrackz — search tracks, loop sections, practice mode, jam along. "
+        "GroovCharts — chords, tabs, lyrics, scales & keys, transpose, progressions. Apps are free downloads with in-app Pro upgrades; "
+        "store badges on each app page link to the App Store / Google Play.\n\n"
+        f"SHOP CATALOG:\n{catalog}\n"
+        "Stage Kits: any signature guitar + GroovAmp 12 + a neon string set, 15% off; optional gig-bag gift wrap (+$49) with a gift note. "
+        "Free shipping over $99. Orders get a receipt email; buyers can review products they purchased.\n\n"
+        "SUPPORT: contact form at /contact, email support@groovlabz.com. Website sign-in supports email/password and Google.\n\n"
+        "MODES: 'support' — answer questions about apps, orders, gear, setup. 'gear' — act as a gear finder: ask at most 2 short questions "
+        "(style, budget, where they play) then recommend a specific guitar/amp/kit from the catalog with a one-line reason and the /shop/<id> path. "
+        "'riff' — creative helper: write riff ideas (with chord progressions and key), lyrics, or practice plans; keep it practical and playable. "
+        "If asked to detect a song's key from audio or build drums from humming, explain those are the site's Key Finder and Hum-to-Drums tools "
+        "(coming to the Instruments page) and offer a manual alternative. Use short paragraphs or bullets; no markdown headers."
+    )
+
+
+@api_router.post("/ai/chat")
+async def ai_chat(req: AiChatRequest, request: Request):
+    api_key = os.environ.get("EMERGENT_LLM_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="AI is not configured")
+    history = await db.ai_messages.find({"session_id": req.session_id}, {"_id": 0}).sort("created_at", 1).to_list(40)
+    now = datetime.now(timezone.utc).isoformat()
+    await db.ai_messages.insert_one({"id": str(uuid.uuid4()), "session_id": req.session_id, "role": "user", "content": req.message, "mode": req.mode, "created_at": now})
+    context = ""
+    if history:
+        context = "Conversation so far:\n" + "\n".join(f"{m['role'].upper()}: {m['content']}" for m in history[-20:]) + "\n\n"
+    chat = LlmChat(api_key=api_key, session_id=req.session_id, system_message=_ai_system_prompt() + f"\nCurrent mode: {req.mode}.").with_model("openai", "gpt-5.4-mini")
+
+    async def gen():
+        full = []
+        try:
+            async for ev in chat.stream_message(UserMessage(text=f"{context}USER: {req.message}")):
+                if isinstance(ev, TextDelta):
+                    full.append(ev.content)
+                    yield f"data: {json.dumps({'delta': ev.content})}\n\n"
+                elif isinstance(ev, StreamDone):
+                    break
+        except Exception as e:
+            logger.error(f"AI chat failed: {e}")
+            yield f"data: {json.dumps({'error': 'The assistant is unavailable right now. Please try again.'})}\n\n"
+        text = "".join(full)
+        if text:
+            await db.ai_messages.insert_one({"id": str(uuid.uuid4()), "session_id": req.session_id, "role": "assistant", "content": text, "mode": req.mode, "created_at": datetime.now(timezone.utc).isoformat()})
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(gen(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@api_router.get("/ai/history/{session_id}")
+async def ai_history(session_id: str):
+    msgs = await db.ai_messages.find({"session_id": session_id}, {"_id": 0}).sort("created_at", 1).to_list(60)
+    return msgs
+
+
 # ---- Shop ----------------------------------------------------
 @api_router.get("/shop/products")
 async def get_products():
-    return SHOP_PRODUCTS
+    return await _apply_product_overrides(SHOP_PRODUCTS)
 
 
 @api_router.get("/shop/products/{pid}")
@@ -578,7 +809,7 @@ async def get_product(pid: str):
     p = next((x for x in SHOP_PRODUCTS if x["id"] == pid), None)
     if not p:
         raise HTTPException(status_code=404, detail="Product not found")
-    return p
+    return (await _apply_product_overrides([p]))[0]
 
 
 # ---- Reviews (verified buyers) --------------------------------
@@ -629,6 +860,7 @@ async def create_review(pid: str, payload: ReviewCreate, user=Depends(get_curren
         "product_id": pid,
         "user_id": user["id"],
         "author": user["name"],
+        "author_picture": user.get("picture"),
         "rating": payload.rating,
         "title": payload.title.strip(),
         "body": payload.body.strip(),
@@ -955,6 +1187,8 @@ async def startup():
         await db.login_attempts.create_index("updated_at", expireAfterSeconds=LOCKOUT_MINUTES * 60)
         await db.reviews.create_index([("product_id", 1), ("user_id", 1)], unique=True)
         await db.files.create_index("id", unique=True)
+        await db.user_sessions.create_index("session_token", unique=True)
+        await db.ai_messages.create_index([("session_id", 1), ("created_at", 1)])
     except Exception as e:
         logger.warning(f"Index setup: {e}")
     try:

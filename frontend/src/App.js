@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Toaster } from "sonner";
 import "./App.css";
 
@@ -8,6 +8,8 @@ import { CartProvider } from "./lib/cart";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
+import AuthCallback from "./components/AuthCallback";
+import AskGroovLabz from "./components/AskGroovLabz";
 
 import Home from "./pages/Home";
 import Apps from "./pages/Apps";
@@ -18,10 +20,43 @@ import ProductDetail from "./pages/ProductDetail";
 import Login from "./pages/Login";
 import Account from "./pages/Account";
 import AdminStoreLinks from "./pages/AdminStoreLinks";
+import AdminMedia from "./pages/AdminMedia";
 import Contact from "./pages/Contact";
 import About from "./pages/About";
 import Legal from "./pages/Legal";
 import { PaymentSuccess, PaymentCancel } from "./pages/Payment";
+
+function AppRouter() {
+  const location = useLocation();
+  if (location.hash?.includes("session_id=")) return <AuthCallback />;
+  return (
+    <>
+      <Navbar />
+      <CartDrawer />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/apps" element={<Apps />} />
+        <Route path="/apps/:id" element={<AppDetail />} />
+        <Route path="/instruments" element={<Instruments />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/shop/:id" element={<ProductDetail />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/login" element={<Login mode="login" />} />
+        <Route path="/register" element={<Login mode="register" />} />
+        <Route path="/account" element={<Account />} />
+        <Route path="/admin/store-links" element={<AdminStoreLinks />} />
+        <Route path="/admin/media" element={<AdminMedia />} />
+        <Route path="/privacy" element={<Legal kind="privacy" />} />
+        <Route path="/terms" element={<Legal kind="terms" />} />
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/cancel" element={<PaymentCancel />} />
+      </Routes>
+      <Footer />
+      <AskGroovLabz />
+    </>
+  );
+}
 
 function App() {
   return (
@@ -29,27 +64,7 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <BrowserRouter>
-            <Navbar />
-            <CartDrawer />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/apps" element={<Apps />} />
-              <Route path="/apps/:id" element={<AppDetail />} />
-              <Route path="/instruments" element={<Instruments />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/shop/:id" element={<ProductDetail />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/login" element={<Login mode="login" />} />
-              <Route path="/register" element={<Login mode="register" />} />
-              <Route path="/account" element={<Account />} />
-              <Route path="/admin/store-links" element={<AdminStoreLinks />} />
-              <Route path="/privacy" element={<Legal kind="privacy" />} />
-              <Route path="/terms" element={<Legal kind="terms" />} />
-              <Route path="/payment/success" element={<PaymentSuccess />} />
-              <Route path="/payment/cancel" element={<PaymentCancel />} />
-            </Routes>
-            <Footer />
+            <AppRouter />
             <Toaster
               theme="dark"
               position="bottom-right"

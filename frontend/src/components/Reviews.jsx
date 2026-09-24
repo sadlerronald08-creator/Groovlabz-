@@ -115,7 +115,10 @@ export default function Reviews({ productId }) {
               {r.photo_url && (
                 <img src={`${API}${r.photo_url}`} alt="Customer photo" className="mt-4 w-40 h-40 object-cover rounded-xl border border-slate-800" data-testid="review-photo" />
               )}
-              <p className="mono text-[10px] text-slate-500 mt-3">{r.author} · {new Date(r.created_at).toLocaleDateString()}</p>
+              <p className="mono text-[10px] text-slate-500 mt-3 flex items-center gap-2">
+                {r.author_picture && <img src={`${API}${r.author_picture}`.replace(`${API}http`, "http")} alt="" className="w-5 h-5 rounded-full object-cover" data-testid="review-author-avatar" />}
+                {r.author} · {new Date(r.created_at).toLocaleDateString()}
+              </p>
             </article>
           ))}
         </div>

@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+export { BACKEND_URL };
 export const API = `${BACKEND_URL}/api`;
+export const mediaUrl = (u) => (u && u.startsWith("/api/") ? `${BACKEND_URL}${u}` : u);
 
 const api = axios.create({
   baseURL: API,

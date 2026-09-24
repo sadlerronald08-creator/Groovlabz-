@@ -269,6 +269,23 @@
 .jn-spin {
     animation: jnSpin 6s linear infinite;
 }
+.jn-infinity {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 3rem;
+    line-height: 1;
+    background: linear-gradient(90deg, #2DA4FF, #C978FF, #2DA4FF);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 12px rgba(45, 164, 255, 0.85)) drop-shadow(0 0 28px rgba(201, 120, 255, 0.45));
+    animation: jnInfinity 5s ease-in-out infinite;
+}
+@keyframes jnInfinity {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
 .store-badge {
     transition: transform 0.2s ease, filter 0.2s ease;
 }
