@@ -59,7 +59,7 @@ export default function Home() {
             <div className="mt-12 grid grid-cols-3 gap-6 max-w-lg">
               {[
                 { k: "5", l: "Studio apps" },
-                { k: "2M+", l: "Musicians" },
+                { k: "1 tap", l: "To record" },
                 { k: "<4ms", l: "BT latency" },
               ].map((s) => (
                 <div key={s.l} className="border-l-2 border-cyan-400/60 pl-3">

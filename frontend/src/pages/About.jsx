@@ -7,13 +7,19 @@ export default function About() {
         <div className="max-w-3xl mb-14">
           <p className="mono-label mb-3">About GroovLabz</p>
           <h1 className="display text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6">
-            We build tools for musicians who <span className="text-cyan-300">refuse to compromise.</span>
+            From a trip <span className="text-cyan-300">to a riff.</span>
           </h1>
+          <p className="text-slate-300 text-lg leading-relaxed mb-5" data-testid="about-origin-story">
+            GroovLabz didn't start in a boardroom. It started on an acid trip.
+            Somewhere in the middle of it I was imagining a music‑recording app so
+            simple and friendly you could use it while tripping — one tap, and the
+            idea is captured before it's gone. That vision became{" "}
+            <span className="text-cyan-300 font-semibold">GroovSesh</span>.
+          </p>
           <p className="text-slate-300 text-lg leading-relaxed">
-            GroovLabz started in a two-room studio in Nashville with a single
-            question: why does professional music software still feel like it
-            was designed in 1998? Five apps, one Bluetooth-linked hardware
-            family, and two million musicians later — we're still asking.
+            GroovSesh led to four more apps — GroovBox, GroovMash, GroovTrackz and
+            GroovCharts — and suddenly I needed a home for all of them. So I built
+            this one. Recording has never been easier.
           </p>
         </div>
 
@@ -21,13 +27,13 @@ export default function About() {
           {[
             {
               icon: Waves,
-              title: "Sound first, software second.",
-              body: "Every DSP algorithm is auditioned by working engineers before it ships. If it doesn't sound as good as rack gear, it doesn't ship.",
+              title: "One tap, no manual.",
+              body: "If you can't figure it out in an altered state, it's too complicated. Every screen is designed to be understood instantly.",
             },
             {
               icon: HeadphonesIcon,
-              title: "Made for headphones AND stages.",
-              body: "Every app is tested on cheap earbuds and $2,000 monitors alike. Great tone should work everywhere.",
+              title: "Capture first, polish later.",
+              body: "Ideas are fragile. GroovSesh gets the take down in seconds — cleanup, stems and mixing come afterwards in the other apps.",
             },
             {
               icon: Wrench,
@@ -36,8 +42,8 @@ export default function About() {
             },
             {
               icon: Users,
-              title: "Musicians. Not just customers.",
-              body: "Half the team plays live weekly. Every feature is battle-tested in green rooms and tour buses before it hits your device.",
+              title: "Built by a musician, for musicians.",
+              body: "Every feature exists because it was needed mid‑jam. Nothing ships that gets in the way of the riff.",
             },
           ].map((p) => {
             const I = p.icon;
@@ -56,8 +62,8 @@ export default function About() {
         <div className="metal-border rounded-2xl p-8 text-center">
           <p className="mono-label mb-3">Manifesto</p>
           <p className="display text-2xl sm:text-3xl font-black leading-tight max-w-3xl mx-auto">
-            <span className="text-cyan-300">"Great tools disappear."</span> Ours
-            get out of your way and let you make the record you hear in your head.
+            <span className="text-cyan-300">"From a trip to a riff."</span> Recording
+            has never been easier — get the idea down before it disappears.
           </p>
         </div>
       </div>

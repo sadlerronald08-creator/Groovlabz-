@@ -99,9 +99,9 @@ export default function Contact() {
             </div>
             <div className="metal-border rounded-2xl p-5">
               <MapPin className="w-5 h-5 text-cyan-300 mb-3" />
-              <p className="mono-label mb-1">Studio HQ</p>
+              <p className="mono-label mb-1">Where we work</p>
               <p className="text-slate-200 text-sm">
-                812 Signal Ave, Nashville TN 37201
+                Everywhere the riff happens — GroovLabz is remote‑first.
               </p>
             </div>
           </div>
