@@ -123,9 +123,15 @@ hardware) + Account + About + Contact + legal pages.
   `lib/sampler.js`, synth fallback while loading, `sample-status` indicator. iteration_9 frontend pass.
 - GroovSesh: Hum-to-Drums backend module + endpoint + `app/hum.tsx` screen (see mobile memory file). Unit tests 3/3.
 
+## Implemented (2026-06) — Sampled drums
+- Website Drum Pad: real acoustic-kit samples (Tone.js audio set via jsDelivr) for kick/snare/hat/tom; clap/crash synth.
+- GroovSesh Hum-to-Drums renders with bundled WAV samples (`backend/assets/drums/`), modelled fallback. Tests 3/3.
+- PayPal: playbook fetched; waiting for user's Sandbox Client ID/Secret (alongside Stripe in cart drawer).
+
 ## Backlog (P0 / P1 / P2)
+- **P1** PayPal button next to Stripe (needs PAYPAL_CLIENT_ID / PAYPAL_SECRET from user)
 - **P0** Push `/app/mobile/groovsesh` to GitHub ("Save to GitHub") and build/smoke-test in the mobile chat (EAS)
-- **P1** Hum-to-Drums in GroovMash (reuse hum_to_drums.py); sampled drum sounds for Drum Pad + hum drums
+- **P1** Hum-to-Drums in GroovMash (reuse hum_to_drums.py)
 - **P1** Phase B: Key Finder (mic → key detection, Web Audio chroma) + Hum‑to‑Drums (onset/tempo → drum pattern) on Instruments page
 - **P1** Support mailbox: user to create groovlabzsupport@gmail.com; then set as OWNER_EMAIL / contact address
 - **P1** User pastes real store URLs in /admin/store-links once apps are approved

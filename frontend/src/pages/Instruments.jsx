@@ -61,8 +61,7 @@ export default function Instruments() {
   useEffect(() => setMasterVolume(volume), [volume]);
   const [samplesReady, setSamplesReady] = useState(false);
   useEffect(() => {
-    const inst = active === "drums" ? null : active;
-    if (!inst) { setSamplesReady(true); return; }
+    const inst = active;
     setSamplesReady(isInstrumentReady(inst));
     let alive = true;
     warmInstrument(inst).then(() => alive && setSamplesReady(isInstrumentReady(inst)));

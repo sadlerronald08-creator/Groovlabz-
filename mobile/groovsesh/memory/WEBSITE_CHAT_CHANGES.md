@@ -41,3 +41,5 @@ Code edited from the GroovLabz website project (`/app/mobile/groovsesh`), verifi
   (`session-hum-button`), Record screen link (`record-hum-link`).
 - Tests: `backend/tests/test_hum_to_drums.py` 3/3. ⚠ Drum sounds are modelled, not sampled — swap `kick/snare/hat`
   in hum_to_drums.py for real WAV samples for a studio sound. Same module is reusable for GroovMash.
+- Hum‑to‑Drums now renders with REAL acoustic‑kit WAV samples in `backend/assets/drums/` (kick, snare, hihat, tom2 —
+  Tone.js audio set, MIT). Modelled synthesis only used if a file is missing.

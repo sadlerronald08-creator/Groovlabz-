@@ -1,6 +1,7 @@
 """Hum-to-Drums: turn a hummed/tapped groove into a drum track locked to the detected tempo."""
 from io import BytesIO
 import math
+import os
 import wave
 
 import numpy as np
@@ -70,7 +71,34 @@ def _env(n, decay):
     return np.exp(-np.arange(n) / (OUT_SR * decay))
 
 
+_SAMPLE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "drums")
+_SAMPLES: dict = {}
+
+
+def _load_sample(name: str):
+    if name in _SAMPLES:
+        return _SAMPLES[name]
+    path = os.path.join(_SAMPLE_DIR, f"{name}.wav")
+    data = None
+    if os.path.exists(path):
+        with wave.open(path, "rb") as w:
+            raw = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768.0
+            if w.getnchannels() > 1:
+                raw = raw.reshape(-1, w.getnchannels()).mean(axis=1)
+            if w.getframerate() != OUT_SR:
+                idx = np.linspace(0, len(raw) - 1, int(len(raw) * OUT_SR / w.getframerate()))
+                raw = np.interp(idx, np.arange(len(raw)), raw).astype(np.float32)
+            peak = float(np.max(np.abs(raw))) or 1.0
+            data = raw / peak
+    _SAMPLES[name] = data
+    return data
+
+
+# Real recorded acoustic-kit samples (Tone.js audio set, MIT) with a modelled fallback if a file is missing.
 def kick(vel=1.0):
+    s = _load_sample("kick")
+    if s is not None:
+        return s * vel
     n = int(OUT_SR * 0.45)
     t = np.arange(n) / OUT_SR
     freq = 55 + 110 * np.exp(-t * 28)
@@ -80,6 +108,9 @@ def kick(vel=1.0):
 
 
 def snare(vel=1.0):
+    s = _load_sample("snare")
+    if s is not None:
+        return s * vel
     n = int(OUT_SR * 0.3)
     t = np.arange(n) / OUT_SR
     tone = (np.sin(2 * np.pi * 185 * t) + 0.6 * np.sin(2 * np.pi * 330 * t)) * _env(n, 0.06)
@@ -90,6 +121,12 @@ def snare(vel=1.0):
 
 
 def hat(vel=1.0, open_=False):
+    s = _load_sample("hihat")
+    if s is not None:
+        if not open_:
+            n = min(len(s), int(OUT_SR * 0.12))
+            return s[:n] * _env(n, 0.05) * vel
+        return s * vel
     n = int(OUT_SR * (0.25 if open_ else 0.08))
     noise = np.random.randn(n)
     noise = noise - np.convolve(noise, np.ones(15) / 15, mode="same")

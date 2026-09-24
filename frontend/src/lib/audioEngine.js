@@ -1,5 +1,5 @@
 // Web Audio engine — sampled instruments (real recordings) with a synth fallback while samples load.
-import { playSampled, preloadInstrument, isInstrumentReady } from "./sampler";
+import { playSampled, preloadInstrument, isInstrumentReady, playSampledDrum } from "./sampler";
 
 let audioCtx = null;
 let masterGain = null;
@@ -115,6 +115,7 @@ export function playNote(noteOrFreq, instrument = "piano", duration = 0.9) {
 /** Drum synthesis: kick/snare/hihat/tom/crash/clap */
 export function playDrum(kind = "kick") {
   const ctx = ensureCtx();
+  if (playSampledDrum(ctx, masterGain, kind)) return;
   const now = ctx.currentTime;
 
   const gain = ctx.createGain();

@@ -18,11 +18,11 @@ export const SAMPLE_SETS = {
 const buffers = new Map();
 const pending = new Map();
 
-async function loadBuffer(ctx, folder, note) {
+async function loadBuffer(ctx, folder, note, base = CDN) {
   const key = `${folder}/${note}`;
   if (buffers.has(key)) return buffers.get(key);
   if (pending.has(key)) return pending.get(key);
-  const p = fetch(`${CDN}/${folder}/${note}.mp3`)
+  const p = fetch(`${base}/${folder}/${note}.mp3`)
     .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))))
     .then((ab) => ctx.decodeAudioData(ab))
     .then((buf) => { buffers.set(key, buf); pending.delete(key); return buf; })
@@ -31,15 +31,37 @@ async function loadBuffer(ctx, folder, note) {
   return p;
 }
 
+// Real acoustic drum kit (Tone.js audio set, MIT). clap/crash have no recording → synth fallback.
+const DRUM_CDN = "https://cdn.jsdelivr.net/gh/Tonejs/audio@master/drum-samples";
+const DRUM_FOLDER = "acoustic-kit";
+const DRUM_FILES = { kick: "kick", snare: "snare", hihat: "hihat", tom: "tom2" };
+
 export function preloadInstrument(ctx, instrument) {
+  if (instrument === "drums") {
+    return Promise.all(Object.values(DRUM_FILES).map((f) => loadBuffer(ctx, DRUM_FOLDER, f, DRUM_CDN)));
+  }
   const set = SAMPLE_SETS[instrument];
   if (!set) return Promise.resolve();
   return Promise.all(set.notes.map((n) => loadBuffer(ctx, set.folder, n)));
 }
 
 export function isInstrumentReady(instrument) {
+  if (instrument === "drums") return Object.values(DRUM_FILES).every((f) => buffers.has(`${DRUM_FOLDER}/${f}`));
   const set = SAMPLE_SETS[instrument];
   return !!set && set.notes.every((n) => buffers.has(`${set.folder}/${n}`));
+}
+
+export function playSampledDrum(ctx, destination, kind) {
+  const file = DRUM_FILES[kind];
+  const buf = file && buffers.get(`${DRUM_FOLDER}/${file}`);
+  if (!buf) return false;
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const gain = ctx.createGain();
+  gain.gain.value = kind === "hihat" ? 0.8 : 1.0;
+  src.connect(gain).connect(destination);
+  src.start();
+  return true;
 }
 
 // Returns true if a sample was played; false if samples aren't loaded yet (caller falls back to synth).
