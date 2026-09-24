@@ -118,9 +118,14 @@ hardware) + Account + About + Contact + legal pages.
   to GroovMash (backend zip endpoint); brand fixes (GroovTracks→GroovMash, groovlabs.com); modelled percussion clicks;
   app.json/eas.json/STORE_LISTING.md store prep. Verified: tsc 0 errors, stems unit tests 2/2. No device run.
 
+## Implemented (2026-06) — Sampled instruments + Hum-to-Drums
+- Website Instruments page: real recorded samples (tonejs-instruments CDN) for piano/guitar/bass/violin via
+  `lib/sampler.js`, synth fallback while loading, `sample-status` indicator. iteration_9 frontend pass.
+- GroovSesh: Hum-to-Drums backend module + endpoint + `app/hum.tsx` screen (see mobile memory file). Unit tests 3/3.
+
 ## Backlog (P0 / P1 / P2)
 - **P0** Push `/app/mobile/groovsesh` to GitHub ("Save to GitHub") and build/smoke-test in the mobile chat (EAS)
-- **P1** Hum-to-Drums in GroovSesh + GroovMash; Instruments page: realistic sampled instrument sounds (user request)
+- **P1** Hum-to-Drums in GroovMash (reuse hum_to_drums.py); sampled drum sounds for Drum Pad + hum drums
 - **P1** Phase B: Key Finder (mic → key detection, Web Audio chroma) + Hum‑to‑Drums (onset/tempo → drum pattern) on Instruments page
 - **P1** Support mailbox: user to create groovlabzsupport@gmail.com; then set as OWNER_EMAIL / contact address
 - **P1** User pastes real store URLs in /admin/store-links once apps are approved

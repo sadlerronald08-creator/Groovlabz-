@@ -31,3 +31,13 @@ Code edited from the GroovLabz website project (`/app/mobile/groovsesh`), verifi
 - `EXPO_PUBLIC_BACKEND_URL` for production; backend image needs `ffmpeg`.
 - Create RevenueCat products `groovsesh_pro_monthly` / `groovsesh_pro_yearly`.
 - Hum‑to‑Drums feature (user request) — also planned for GroovMash.
+
+## Hum‑to‑Drums (added)
+- `backend/hum_to_drums.py`: decode (pydub) → spectral‑flux onsets → autocorrelation tempo (60–180 BPM) → 16th grid;
+  low‑frequency hits → kick, sharp hits → snare, hats auto‑filled; renders 44.1 kHz WAV with modelled kick/snare/hat.
+- `POST /api/sessions/{id}/hum-to-drums` (multipart `file`) → adds track "Drums · N BPM (from hum)" (source `hum`),
+  sets session bpm if empty; 422 with a friendly message if too quiet / no groove.
+- `app/hum.tsx` screen (`/hum?session=<id>`; creates a session if none). Entry points: session header pulse button
+  (`session-hum-button`), Record screen link (`record-hum-link`).
+- Tests: `backend/tests/test_hum_to_drums.py` 3/3. ⚠ Drum sounds are modelled, not sampled — swap `kick/snare/hat`
+  in hum_to_drums.py for real WAV samples for a studio sound. Same module is reusable for GroovMash.
