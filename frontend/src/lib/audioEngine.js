@@ -1,8 +1,13 @@
-// Web Audio synth engine — polyphonic oscillator with envelope + filter.
-// Zero external assets. Used by Instruments playground.
+// Web Audio engine — sampled instruments (real recordings) with a synth fallback while samples load.
+import { playSampled, preloadInstrument, isInstrumentReady } from "./sampler";
 
 let audioCtx = null;
 let masterGain = null;
+
+export function warmInstrument(instrument) {
+  return preloadInstrument(ensureCtx(), instrument);
+}
+export { isInstrumentReady };
 
 function ensureCtx() {
   if (!audioCtx) {
@@ -41,6 +46,7 @@ export function noteFreq(note) {
  */
 export function playNote(noteOrFreq, instrument = "piano", duration = 0.9) {
   const ctx = ensureCtx();
+  if (typeof noteOrFreq === "string" && playSampled(ctx, masterGain, noteOrFreq, instrument, duration)) return;
   const freq =
     typeof noteOrFreq === "string" ? noteFreq(noteOrFreq) : noteOrFreq;
   const now = ctx.currentTime;

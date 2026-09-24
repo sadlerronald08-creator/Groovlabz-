@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Volume2, Piano as PianoIcon, Guitar, Drum, Music4 } from "lucide-react";
-import { playNote, playDrum, setMasterVolume } from "../lib/audioEngine";
+import { playNote, playDrum, setMasterVolume, warmInstrument, isInstrumentReady } from "../lib/audioEngine";
 
 const PIANO_KEYS = [
   { note: "C4", type: "white", key: "a" },
@@ -59,6 +59,15 @@ export default function Instruments() {
   const [plucked, setPlucked] = useState({});
 
   useEffect(() => setMasterVolume(volume), [volume]);
+  const [samplesReady, setSamplesReady] = useState(false);
+  useEffect(() => {
+    const inst = active === "drums" ? null : active;
+    if (!inst) { setSamplesReady(true); return; }
+    setSamplesReady(isInstrumentReady(inst));
+    let alive = true;
+    warmInstrument(inst).then(() => alive && setSamplesReady(isInstrumentReady(inst)));
+    return () => { alive = false; };
+  }, [active]);
 
   const flashKey = useCallback((note) => {
     setPressed((p) => ({ ...p, [note]: true }));
@@ -100,9 +109,12 @@ export default function Instruments() {
             Play <span className="text-cyan-300">real instruments</span> in your browser.
           </h1>
           <p className="text-slate-300 text-lg">
-            No downloads, no plugins. Every note is synthesized live in your
-            browser using the Web Audio API — plug in headphones for the full
-            studio feel.
+            No downloads, no plugins. Every note is a real recorded sample —
+            acoustic guitar, grand piano, electric bass and violin — played
+            back live in your browser. Plug in headphones for the full studio feel.
+          </p>
+          <p className="mono text-[11px] uppercase tracking-widest mt-3" data-testid="sample-status">
+            {samplesReady ? <span className="text-cyan-300">● Samples loaded</span> : <span className="text-slate-500">○ Loading real instrument samples…</span>}
           </p>
         </div>
 

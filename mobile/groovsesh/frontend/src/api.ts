@@ -83,6 +83,29 @@ export async function uploadTrack(
   return res.json();
 }
 
+export async function humToDrums(sessionId: string, uri: string): Promise<any> {
+  const form = new FormData();
+  const filename = `hum.${uri.split(".").pop()?.split("?")[0] || "m4a"}`;
+  const type = filename.endsWith("wav") ? "audio/wav" : filename.endsWith("mp3") ? "audio/mpeg" : "audio/m4a";
+  if (Platform.OS === "web") {
+    const blob = await (await fetch(uri)).blob();
+    form.append("file", blob, filename);
+  } else {
+    form.append("file", { uri, name: filename, type } as any);
+  }
+  const res = await fetch(`${API_URL}/sessions/${sessionId}/hum-to-drums`, {
+    method: "POST",
+    headers: { ...(await authHeaders()) },
+    body: form,
+  });
+  if (!res.ok) {
+    let msg = "Couldn't build drums from that";
+    try { msg = (await res.json()).detail || msg; } catch {}
+    throw new ApiError(res.status, msg);
+  }
+  return res.json();
+}
+
 // Full audio URL with token in query string (works for native headers + web <audio>).
 export async function audioSource(audioUrl: string): Promise<{ uri: string }> {
   const t = await getToken();

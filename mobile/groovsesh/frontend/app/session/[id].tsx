@@ -9,7 +9,7 @@ import * as Haptics from "expo-haptics";
 import { useAudioRecorder, useAudioRecorderState, RecordingPresets } from "expo-audio";
 import {
   CaretLeft, Play, Pause, Microphone, Metronome, SlidersHorizontal,
-  Trash, Export as ExportIcon, X, Guitar, DotsSixVertical,
+  Trash, Export as ExportIcon, X, Guitar, DotsSixVertical, Pulse,
 } from "phosphor-react-native";
 import { makeStyles, useTheme, fonts, trackColors, glow } from "@/src/theme";
 import { GrooveWatermark } from "@/src/components/ui";
@@ -263,6 +263,9 @@ export default function SessionScreen() {
           <Text style={styles.title} numberOfLines={1}>{data.title}</Text>
           <Text style={styles.timecode}>{fmt(player.position)} / {fmt(player.maxDuration)}</Text>
         </View>
+        <Pressable onPress={() => router.push(`/hum?session=${id}`)} testID="session-hum-button" hitSlop={10} style={[styles.iconBtn, { marginRight: 8 }]}>
+          <Pulse size={22} color={colors.brandSecondary} weight="fill" />
+        </Pressable>
         <Pressable onPress={() => router.push(`/export/${id}`)} testID="session-export-button" hitSlop={10} style={styles.iconBtn}>
           <ExportIcon size={22} color={colors.brandSecondary} weight="bold" />
         </Pressable>

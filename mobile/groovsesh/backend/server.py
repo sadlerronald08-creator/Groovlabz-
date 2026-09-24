@@ -594,6 +594,46 @@ def _do_stems(tracks: list) -> bytes:
     return buf.getvalue()
 
 
+@api_router.post("/sessions/{session_id}/hum-to-drums")
+async def hum_to_drums_endpoint(
+    session_id: str,
+    file: UploadFile = File(...),
+    authorization: Optional[str] = Header(default=None),
+):
+    from hum_to_drums import hum_to_drums
+
+    user = await require_user(authorization)
+    s = await db.groove_sessions.find_one({"id": session_id, "user_id": user["user_id"], "deleted_at": None})
+    if not s:
+        raise HTTPException(status_code=404, detail="Session not found")
+    data = await file.read()
+    if len(data) > 25 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Recording too large")
+    ext = file.filename.rsplit(".", 1)[-1].lower() if file.filename and "." in file.filename else None
+    try:
+        result = await run_in_threadpool(hum_to_drums, data, ext)
+    except ValueError as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as e:
+        logger.warning(f"hum-to-drums failed: {e}")
+        raise HTTPException(status_code=500, detail="Couldn't analyse that recording")
+    track_id = str(uuid.uuid4())
+    path = f"{APP_NAME}/uploads/{user['user_id']}/{track_id}.wav"
+    await run_in_threadpool(put_object, path, result["wav"], "audio/wav")
+    order = await db.tracks.count_documents({"session_id": session_id, "deleted_at": None})
+    track = Track(id=track_id, session_id=session_id, user_id=user["user_id"], name=f"Drums · {result['bpm']} BPM (from hum)",
+                  storage_path=path, order=order, duration=float(result["duration"]), source="hum", color=3)
+    doc = track.model_dump()
+    doc["content_type"] = "audio/wav"
+    await db.tracks.insert_one(doc)
+    updates = {"updated_at": now_utc()}
+    if not s.get("bpm"):
+        updates["bpm"] = result["bpm"]
+    await db.groove_sessions.update_one({"id": session_id}, {"$set": updates})
+    return {"track": track_public(doc), "bpm": result["bpm"], "bars": result["bars"], "onsets": result["onsets"],
+            "kicks": result["kicks"], "snares": result["snares"]}
+
+
 @api_router.post("/sessions/{session_id}/stems")
 async def export_stems(session_id: str, authorization: Optional[str] = Header(default=None)):
     user = await require_user(authorization)
