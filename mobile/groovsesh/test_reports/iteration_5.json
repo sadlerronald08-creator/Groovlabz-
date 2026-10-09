@@ -15,7 +15,7 @@
     "Optional migration: replace deprecated props.pointerEvents with style.pointerEvents and shadow*/textShadow* with boxShadow/textShadow on RN Web to silence console warnings."
   ],
   "critical_code_review_comments": [
-    "index.tsx home node routing is data-driven and each entry has a unique route + testID; matches the 'distinct pathways' user requirement.",
+    " home node routing is data-driven and each entry has a unique route + testID; matches the 'distinct pathways' user requirement.",
     "tool-screen.tsx cleanly powers Neural/Mixer/Reel/Collab/Looper/Songbook/Setlists with per-screen testID passed through - lightweight and DRY.",
     "wordmark.tsx uses a single cubic-bezier Path for the lemniscate (true infinity), not two circles - matches the brand ask."
   ],
